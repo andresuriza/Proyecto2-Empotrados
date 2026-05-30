@@ -25,9 +25,13 @@ module mp3_player_top (
     inout  wire         HPS_SD_CMD,
     inout  wire  [3:0]  HPS_SD_DATA,
 
-    // ── HPS I2C (WM8731 config) ────────────────────
+    // ── HPS I2C ────────────────────────────────────
     inout  wire         HPS_I2C1_SCLK,
     inout  wire         HPS_I2C1_SDAT,
+
+    // ── FPGA I2C (audio codec config) ─────────────
+    inout  wire         FPGA_I2C_SDAT,
+    output logic        FPGA_I2C_SCLK,
 
     // ── HPS UART ───────────────────────────────────
     input  logic        HPS_UART_RX,
@@ -65,45 +69,66 @@ module mp3_player_top (
     output logic [6:0]  HEX1,
     output logic [6:0]  HEX2,
     output logic [6:0]  HEX3,
+    output logic [6:0]  HEX4,
+    output logic [6:0]  HEX5,
 
     // ── Buttons & Switches ─────────────────────────
     input  logic [3:0]  KEY,
     input  logic [9:0]  SW
 );
 
-// HPS reset output → drives FPGA logic reset
-logic hps_fpga_reset_n;
+// ── VGA placeholder (no driver yet) ────────────────
+assign VGA_R       = 8'h0;
+assign VGA_G       = 8'h0;
+assign VGA_B       = 8'h0;
+assign VGA_HS      = 1'b1;
+assign VGA_VS      = 1'b1;
+assign VGA_BLANK_N = 1'b1;
+assign VGA_SYNC_N  = 1'b0;
+assign VGA_CLK     = 1'b0;
 
-// Filter select from switch priority encoder
-logic [1:0] active_filter;
+// ── AUD_XCK placeholder (needs PLL — added in later phase) ─
+assign AUD_XCK = 1'b0;
 
-// 7-seg decoded values (from your timer block)
-logic [6:0] hex0_val, hex1_val, hex2_val, hex3_val;
+// ── Internal signals ────────────────────────────────
+logic        sys_timer_ext;           // sys_timer timeout pulse (unused at top)
+logic        h2f_mpu_evento;
+logic [1:0]  h2f_mpu_standbywfe;
+logic [1:0]  h2f_mpu_standbywfi;
 
+// ── HPS + NIOS II subsystem ────────────────────────
 hps u0 (
-    .memory_mem_a                       (HPS_DDR3_ADDR),                       //                     memory.mem_a
-    .memory_mem_ba                      (HPS_DDR3_BA),                      //                           .mem_ba
-    .memory_mem_ck                      (HPS_DDR3_CK_P),                      //                           .mem_ck
-    .memory_mem_ck_n                    (HPS_DDR3_CK_N),                    //                           .mem_ck_n
-    .memory_mem_cke                     (HPS_DDR3_CKE),                     //                           .mem_cke
-    .memory_mem_cs_n                    (HPS_DDR3_CS_N),                    //                           .mem_cs_n
-    .memory_mem_ras_n                   (HPS_DDR3_RAS_N),                   //                           .mem_ras_n
-    .memory_mem_cas_n                   (HPS_DDR3_CAS_N),                   //                           .mem_cas_n
-    .memory_mem_we_n                    (HPS_DDR3_WE_N),                    //                           .mem_we_n
-    .memory_mem_reset_n                 (HPS_DDR3_RESET_N),                 //                           .mem_reset_n
-    .memory_mem_dq                      (HPS_DDR3_DQ),                      //                           .mem_dq
-    .memory_mem_dqs                     (HPS_DDR3_DQS_P),                     //                           .mem_dqs
-    .memory_mem_dqs_n                   (HPS_DDR3_DQS_N),                  //                           .mem_dqs_n
-    .memory_mem_odt                     (HPS_DDR3_ODT),                     //                           .mem_odt
-    .memory_mem_dm                      (HPS_DDR3_DM),                      //                           .mem_dm
-    .memory_oct_rzqin                   (HPS_DDR3_RZQ),                   //                           .oct_rzqin
-    .hps_io_hps_io_sdio_inst_CMD        (HPS_SD_CMD),        //                     hps_io.hps_io_sdio_inst_CMD
-    .hps_io_hps_io_sdio_inst_D0         (HPS_SD_DATA[0]),         //                           .hps_io_sdio_inst_D0
-    .hps_io_hps_io_sdio_inst_D1         (HPS_SD_DATA[1]),         //                           .hps_io_sdio_inst_D1
-    .hps_io_hps_io_sdio_inst_CLK        (HPS_SD_CLK),        //                           .hps_io_sdio_inst_CLK
-    .hps_io_hps_io_sdio_inst_D2         (HPS_SD_DATA[2]),         //                           .hps_io_sdio_inst_D2
-    .hps_io_hps_io_sdio_inst_D3         (HPS_SD_DATA[3]),         //                           .hps_io_sdio_inst_D3
+    // Clock & Reset
+    .clk_clk                            (CLOCK_50),
+    .reset_reset_n                      (1'b1),
 
+    // DDR3
+    .memory_mem_a                       (HPS_DDR3_ADDR),
+    .memory_mem_ba                      (HPS_DDR3_BA),
+    .memory_mem_ck                      (HPS_DDR3_CK_P),
+    .memory_mem_ck_n                    (HPS_DDR3_CK_N),
+    .memory_mem_cke                     (HPS_DDR3_CKE),
+    .memory_mem_cs_n                    (HPS_DDR3_CS_N),
+    .memory_mem_ras_n                   (HPS_DDR3_RAS_N),
+    .memory_mem_cas_n                   (HPS_DDR3_CAS_N),
+    .memory_mem_we_n                    (HPS_DDR3_WE_N),
+    .memory_mem_reset_n                 (HPS_DDR3_RESET_N),
+    .memory_mem_dq                      (HPS_DDR3_DQ),
+    .memory_mem_dqs                     (HPS_DDR3_DQS_P),
+    .memory_mem_dqs_n                   (HPS_DDR3_DQS_N),
+    .memory_mem_odt                     (HPS_DDR3_ODT),
+    .memory_mem_dm                      (HPS_DDR3_DM),
+    .memory_oct_rzqin                   (HPS_DDR3_RZQ),
+
+    // SD Card
+    .hps_io_hps_io_sdio_inst_CMD        (HPS_SD_CMD),
+    .hps_io_hps_io_sdio_inst_D0         (HPS_SD_DATA[0]),
+    .hps_io_hps_io_sdio_inst_D1         (HPS_SD_DATA[1]),
+    .hps_io_hps_io_sdio_inst_CLK        (HPS_SD_CLK),
+    .hps_io_hps_io_sdio_inst_D2         (HPS_SD_DATA[2]),
+    .hps_io_hps_io_sdio_inst_D3         (HPS_SD_DATA[3]),
+
+    // USB
     .hps_io_hps_io_usb1_inst_D0         (HPS_USB_DATA[0]),
     .hps_io_hps_io_usb1_inst_D1         (HPS_USB_DATA[1]),
     .hps_io_hps_io_usb1_inst_D2         (HPS_USB_DATA[2]),
@@ -117,89 +142,49 @@ hps u0 (
     .hps_io_hps_io_usb1_inst_DIR        (HPS_USB_DIR),
     .hps_io_hps_io_usb1_inst_NXT        (HPS_USB_NXT),
 
-    .hps_io_hps_io_uart0_inst_RX        (HPS_UART_RX),        //                           
-    .hps_io_hps_io_uart0_inst_TX        (HPS_UART_TX),        //                           
-    .hps_io_hps_io_uart0_inst_CTS       (HPS_UART_CTS),       //                           
-    .hps_io_hps_io_uart0_inst_RTS       (HPS_UART_RTS),       //                           
-    .hps_io_hps_io_i2c0_inst_SDA        (HPS_I2C1_SDAT),        //                           .hps_io_i2c0_inst_SDA
-    .hps_io_hps_io_i2c0_inst_SCL        (HPS_I2C1_SCLK),        //                           .hps_io_i2c0_inst_SCL
-    .hpf_reset_reset_n                  (hps_fpga_reset_n),                  //                  hpf_reset.reset_n
-    .reset_reset_n                      (1'b1),                      //                      reset.reset_n
-    .clk_clk                            (CLOCK_50),                            //                        clk.clk
-    .audio_0_external_interface_ADCDAT  (AUD_ADCDAT),  // audio_0_external_interface.ADCDAT
-    .audio_0_external_interface_ADCLRCK (AUD_ADCLRCK), //                           .ADCLRCK
-    .audio_0_external_interface_BCLK    (AUD_BCLK),    //                           .BCLK
-    .audio_0_external_interface_DACDAT  (AUD_DACDAT),  //                           .DACDAT
-    .audio_0_external_interface_DACLRCK (AUD_DACLRCK), //                           .DACLRCK
-    
-    // ── Avalon-MM Custom Slave Bridge ─────────────
-    .avalon_mm_master_waitrequest       (1'b0),
-    .avalon_mm_master_readdata          (avl_readdata),
-    .avalon_mm_master_readdatavalid     (avl_readdatavalid),
-    .avalon_mm_master_burstcount        (),
-    .avalon_mm_master_writedata         (avl_writedata),
-    .avalon_mm_master_address           (avl_addr),
-    .avalon_mm_master_write             (avl_write),
-    .avalon_mm_master_read              (avl_read),
-    .avalon_mm_master_byteenable        (),
-    .avalon_mm_master_debugaccess       ()
+    // UART
+    .hps_io_hps_io_uart0_inst_RX        (HPS_UART_RX),
+    .hps_io_hps_io_uart0_inst_TX        (HPS_UART_TX),
+    .hps_io_hps_io_uart0_inst_CTS       (HPS_UART_CTS),
+    .hps_io_hps_io_uart0_inst_RTS       (HPS_UART_RTS),
+
+    // HPS I2C
+    .hps_io_hps_io_i2c0_inst_SDA        (HPS_I2C1_SDAT),
+    .hps_io_hps_io_i2c0_inst_SCL        (HPS_I2C1_SCLK),
+
+    // Audio data (WM8731 serial)
+    .audio_0_external_interface_ADCDAT  (AUD_ADCDAT),
+    .audio_0_external_interface_ADCLRCK (AUD_ADCLRCK),
+    .audio_0_external_interface_BCLK    (AUD_BCLK),
+    .audio_0_external_interface_DACDAT  (AUD_DACDAT),
+    .audio_0_external_interface_DACLRCK (AUD_DACLRCK),
+
+    // Audio codec I2C config (via FPGA fabric)
+    .audio_config_SDAT                  (FPGA_I2C_SDAT),
+    .audio_config_SCLK                  (FPGA_I2C_SCLK),
+
+    // PIO — botones (activo-bajo, invierten en software de NIOS)
+    .pio_key_export                     (KEY),
+
+    // PIO — switches (solo 3 bits para filtro)
+    .pio_sw_export                      (SW[2:0]),
+
+    // PIO — displays 7-seg HEX0–HEX3
+    // Layout [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
+    .pio_hex_lo_export                  ({HEX3, HEX2, HEX1, HEX0}),
+
+    // PIO — displays 7-seg HEX4–HEX5
+    // Layout [13:7]=HEX5 [6:0]=HEX4
+    .pio_hex_hi_export                  ({HEX5, HEX4}),
+
+    // MPU events (no usados en este diseño)
+    .h2f_mpu_events_eventi              (1'b0),
+    .h2f_mpu_events_evento              (h2f_mpu_evento),
+    .h2f_mpu_events_standbywfe          (h2f_mpu_standbywfe),
+    .h2f_mpu_events_standbywfi          (h2f_mpu_standbywfi),
+
+    // sys_timer timeout pulse (manejado internamente por NIOS via IRQ)
+    .sys_timer_ext_export               (sys_timer_ext)
 );
-
-logic avl_readdatavalid;
-always_ff @(posedge CLOCK_50 or negedge hps_fpga_reset_n) begin
-    if (!hps_fpga_reset_n)
-        avl_readdatavalid <= 1'b0;
-    else
-        avl_readdatavalid <= avl_read;
-end
-
-// ── Switch priority encoder ─────────────────────
-filter_select u_filter (
-    .clk        (CLOCK_50),
-    .reset_n    (hps_fpga_reset_n),
-    .sw_in      (SW[2:0]),
-    .filter_out (active_filter)
-);
-
-logic timer_sync_rst;
-
-// ── 7-segment time display ──────────────────────
-seg7_timer u_timer (
-    .clk        (CLOCK_50),
-    .reset_n    (hps_fpga_reset_n),
-    .sync_reset (timer_sync_rst),
-    .hex0       (HEX0),
-    .hex1       (HEX1),
-    .hex2       (HEX2),
-    .hex3       (HEX3)
-);
-
-// ── Custom MMIO Slave ───────────────────────────
-// These signals will tie to the Avalon Pipeline Bridge
-// once you export it from Qsys
-logic [9:0]  avl_addr;
-logic        avl_read, avl_write;
-logic [31:0] avl_writedata, avl_readdata;
-logic        avl_waitrequest; // mmio_slave handles 1-cycle reads, can tie avl_waitrequest to 0 in Qsys if needed
-
-mmio_slave u_mmio (
-    .clk           (CLOCK_50),
-    .reset_n       (hps_fpga_reset_n),
-    .avl_address   (avl_addr[5:0]), // Downsizing 10-bit address bus to 6-bit internally
-    .avl_read      (avl_read),
-    .avl_readdata  (avl_readdata),
-    .avl_write     (avl_write),
-    .avl_writedata (avl_writedata),
-    
-    .timer_reset   (timer_sync_rst),
-    .active_filter (active_filter),
-    .key           (KEY),
-    .sw            (SW[2:0]),
-    .irq           () // Can tie to f2h_irq0 if exported
-);
-
-// ── Unused displays ────
-assign HEX4 = 7'h7F;  // blank
-assign HEX5 = 7'h7F;  // blank
 
 endmodule
