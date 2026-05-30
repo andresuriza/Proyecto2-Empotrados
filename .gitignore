@@ -54,6 +54,7 @@
 !*.tbd
 !*.sof
 !*.qsys
+!/software
 ## tbd
 
 !*.tcl
