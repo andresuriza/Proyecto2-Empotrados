@@ -96,6 +96,12 @@ logic        h2f_mpu_evento;
 logic [1:0]  h2f_mpu_standbywfe;
 logic [1:0]  h2f_mpu_standbywfi;
 
+logic [27:0] test_lo;
+logic [13:0] test_hi;
+
+assign test_lo = 28'h0000000;
+assign test_hi = 14'h0000;
+
 // ── HPS + NIOS II subsystem ────────────────────────
 hps u0 (
     // Clock & Reset
@@ -173,8 +179,8 @@ hps u0 (
     // Layout [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
     .pio_hex_lo_export                  ({HEX3, HEX2, HEX1, HEX0}),
 
-    // PIO — displays 7-seg HEX4–HEX5
-    // Layout [13:7]=HEX5 [6:0]=HEX4
+    // // PIO — displays 7-seg HEX4–HEX5
+    // // Layout [13:7]=HEX5 [6:0]=HEX4
     .pio_hex_hi_export                  ({HEX5, HEX4}),
 
     // MPU events (no usados en este diseño)
@@ -186,5 +192,9 @@ hps u0 (
     // sys_timer timeout pulse (manejado internamente por NIOS via IRQ)
     .sys_timer_ext_export               (sys_timer_ext)
 );
+
+
+
+
 
 endmodule
