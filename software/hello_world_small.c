@@ -9,12 +9,12 @@
 static volatile uint32_t key_event = 0;
 static volatile uint32_t tick_ms   = 0;
 
-static void key_isr(void *ctx) {
+static void key_isr(void *ctx, alt_u32 id) {
     key_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE);
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
 }
 
-static void timer_isr(void *ctx) {
+static void timer_isr(void *ctx, alt_u32 id) {
     IOWR_ALTERA_AVALON_TIMER_STATUS(SYS_TIMER_BASE, 0);
     tick_ms++;
 }
@@ -25,16 +25,14 @@ int main() {
     // KEY: interrupciones por flanco en los 4 botones
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_KEY_BASE, 0xF);
-    alt_ic_isr_register(PIO_KEY_IRQ_INTERRUPT_CONTROLLER_ID,
-                        PIO_KEY_IRQ, key_isr, NULL, NULL);
+    alt_irq_register(PIO_KEY_IRQ, NULL, key_isr);
 
     // Timer 1ms: continuo con interrupcion por timeout
     IOWR_ALTERA_AVALON_TIMER_CONTROL(SYS_TIMER_BASE,
         ALTERA_AVALON_TIMER_CONTROL_ITO_MSK  |
         ALTERA_AVALON_TIMER_CONTROL_CONT_MSK |
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
-    alt_ic_isr_register(SYS_TIMER_IRQ_INTERRUPT_CONTROLLER_ID,
-                        SYS_TIMER_IRQ, timer_isr, NULL, NULL);
+    alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
 
     printf("IRQs listos. Presiona KEY0-KEY3...\n");
 
