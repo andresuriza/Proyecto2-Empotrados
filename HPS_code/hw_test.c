@@ -1,27 +1,40 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-#define HEX_HI_OFFSET  0x31040
-#define HEX_LO_OFFSET  0x31050
-
 #define LW_BRIDGE_BASE 0xFF200000
-#define MAILBOX_BASE 0xF000
 #define MAP_SIZE       0x40000
 
-#define SHARED_OFFSET 0x00000
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: ./hw_test <hex_value>\n");
+        printf("Example: ./hw_test 123456\n");
+        return 1;
+    }
 
-int main()
-{
+    uint32_t val = (uint32_t)strtoul(argv[1], NULL, 16);
+
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    volatile uint32_t *lw = mmap(NULL, MAP_SIZE,
+        PROT_READ | PROT_WRITE, MAP_SHARED, fd, LW_BRIDGE_BASE);
 
-    volatile uint32_t *lw = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, LW_BRIDGE_BASE);
-    volatile uint32_t *mailbox = (volatile uint32_t*) ((char*) lw + MAILBOX_BASE);
+    volatile uint32_t *mailbox = lw;  // offset 0x0000
 
-    mailbox[0] = 1;   // PLAY
-    mailbox[1] = 7;   // Track 7
+    mailbox[0] = val;
 
+    // Wait for NIOS ACK
+    int timeout = 1000;
+    while (mailbox[1] != 0xACE && timeout--) usleep(1000);
+
+    if (timeout > 0)
+        printf("NIOS ACK! Displaying: 0x%06X\n", val);
+    else
+        printf("Timeout — NIOS didn't respond.\n");
+
+    munmap((void*)lw, MAP_SIZE);
+    close(fd);
     return 0;
 }
