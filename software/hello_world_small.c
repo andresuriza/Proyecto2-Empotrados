@@ -9,6 +9,13 @@
 static volatile uint32_t key_event = 0;
 static volatile uint32_t tick_ms   = 0;
 
+static volatile uint32_t sw_event = 0;
+
+static void sw_isr(void *ctx, alt_u32 id) {
+    sw_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE);
+    IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE, 0x7);
+}
+
 static const uint8_t seg7[16] = {
     0x40, 0x79, 0x24, 0x30, 0x19,
     0x12, 0x02, 0x78, 0x00, 0x10,
@@ -44,6 +51,10 @@ int main() {
     // KEY interrupts
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_KEY_BASE, 0xF);
+    // Switches: interrupt on any edge
+    IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE, 0x7);
+    IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_SW_BASE, 0x7);
+    alt_irq_register(4, NULL, sw_isr);
     alt_irq_register(PIO_KEY_IRQ, NULL, key_isr);
 
     // Timer 1ms
@@ -79,14 +90,12 @@ int main() {
             IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
         }
 
-        // Switches: show switch pattern on HEX3-HEX2 (polling, no IRQ needed)
-        uint32_t sw = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x7;
-        if (sw != last_sw) {
-            last_sw = sw;
+        if (sw_event) {
+            uint32_t sw = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x7;
+            sw_event = 0;
             printf("[%u ms] SW: 0x%x\n", (unsigned)tick_ms, (unsigned)sw);
-            // display switch bits on HEX2
             uint32_t lo = IORD_32DIRECT(PIO_HEX_LO_BASE, 0);
-            lo &= 0x3FFF; // keep HEX1-HEX0, update HEX2 only
+            lo &= 0x3FFF;
             lo |= ((uint32_t)seg7[sw & 0xF] << 14);
             IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
         }
