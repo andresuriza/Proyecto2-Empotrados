@@ -16,3 +16,5 @@
 // CAMBIAR con el mapa de Platform Designer
 #define ARM_PRIVATE_MEM_BASE  0x00010000  // temporal
 #define ARM_PRIVATE_MEM_SIZE  0x10000     // 64KB
+
+#endif 

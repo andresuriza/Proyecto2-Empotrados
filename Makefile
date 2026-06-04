@@ -2,11 +2,12 @@ CC_PC  = gcc
 CC_ARM = arm-none-eabi-gcc
 
 # ── PC (prueba storage/FAT) ──────────────────────────────
-CFLAGS_PC = -Wall -g -Iinclude -Ilib
+CFLAGS_PC = -Wall -g -Iinclude -Ilib -DTARGET_SIMULATION
 
 SRC_PC = src/storage_manager.c       \
          src/wav_parser.c            \
          src/circular_buffer.c       \
+         src/mailbox.c               \
          src/bsp/sim/diskio_sim.c    \
          lib/fatfs/ff.c              \
          src/test_storage.c
