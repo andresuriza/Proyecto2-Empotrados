@@ -87,8 +87,14 @@ assign VGA_BLANK_N = 1'b1;
 assign VGA_SYNC_N  = 1'b0;
 assign VGA_CLK     = 1'b0;
 
-// ── AUD_XCK placeholder (needs PLL — added in later phase) ─
-assign AUD_XCK = 1'b0;
+// ── PLL: genera 12.288 MHz para el codec WM8731 ─────────────
+logic pll_locked;
+
+audio_pll pll_inst (
+    .inclk0 (CLOCK_50),
+    .c0     (AUD_XCK),
+    .locked (pll_locked)
+);
 
 // ── Internal signals ────────────────────────────────
 logic        sys_timer_ext;           // sys_timer timeout pulse (unused at top)
