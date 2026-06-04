@@ -6,6 +6,7 @@ CFLAGS_PC = -Wall -g -Iinclude -Ilib
 
 SRC_PC = src/storage_manager.c       \
          src/wav_parser.c            \
+         src/circular_buffer.c       \
          src/bsp/sim/diskio_sim.c    \
          lib/fatfs/ff.c              \
          src/test_storage.c
