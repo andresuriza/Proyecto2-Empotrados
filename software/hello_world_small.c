@@ -149,10 +149,10 @@ int main(void) {
             // STOP
             tail = 0;
             sh[IDX_TAIL] = 0;
+            sh[IDX_CMD]  = 0;   // ACK: volver a idle (ARM ya salió, esto evita spin eterno)
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // clear FIFOs
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
             printf("STOP\n");
-            while (sh[IDX_CMD] == 2) {} // esperar nuevo comando
         }
     }
 
