@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
     // Inicializar mailbox
     sh[IDX_CMD]  = 0;
     sh[IDX_HEAD] = 0;
+    sh[IDX_TAIL] = 0;   // limpiar TAIL residual de corrida anterior
     uint32_t head = 0;
 
     sh[IDX_CMD] = 1;    // PLAY
