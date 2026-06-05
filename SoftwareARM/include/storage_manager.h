@@ -16,6 +16,7 @@ int  storage_init(void);
 int  storage_list_songs(SongInfo songs[], int max_songs);
 int  storage_open_song(const char* filename);
 int  storage_read_bytes(uint8_t* buf, uint32_t len);
+int  storage_seek(uint32_t offset);
 void storage_close_song(void);
 int  storage_get_song_count(void);
 

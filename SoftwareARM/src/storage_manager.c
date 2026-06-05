@@ -74,6 +74,11 @@ int storage_read_bytes(uint8_t* buf, uint32_t len) {
     return (int)bytes_read;
 }
 
+int storage_seek(uint32_t offset) {
+    FRESULT res = f_lseek(&current_file, offset);
+    return (res == FR_OK) ? 0 : -1;
+}
+
 void storage_close_song(void) {
     f_close(&current_file);
 }
