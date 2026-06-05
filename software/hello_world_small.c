@@ -84,6 +84,10 @@ int main(void) {
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // limpiar FIFOs
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
 
+    // PROBE: verificar que el registro FIFO del audio IP responde a lectura
+    uint32_t fifo_probe = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+    printf("AUDIO probe: base=0x%X fifo=0x%08X\n", (unsigned)AUDIO_0_BASE, (unsigned)fifo_probe);
+
     // --- Shared memory ---
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
@@ -125,16 +129,9 @@ int main(void) {
             uint32_t head = sh[IDX_HEAD];
 
             if (head != tail) {
-                // esperar espacio en FIFO del DAC
-                uint32_t fifo;
-                uint32_t fifo_timeout = 0;
-                do {
-                    fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                    if (++fifo_timeout >= 5000000) {
-                        printf("FIFO stuck: 0x%08X\n", (unsigned)fifo);
-                        fifo_timeout = 0;
-                    }
-                } while (((fifo >> 16) & 0xFF) == 0);
+                // verificar espacio en FIFO — no bloqueante, skip si lleno
+                uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                if (((fifo >> 16) & 0xFF) == 0) continue; // sin espacio, iterar de nuevo
 
                 // desempacar muestra: bits[31:16]=L bits[15:0]=R
                 uint32_t packed = sh[BUF_WORD_START + tail];
