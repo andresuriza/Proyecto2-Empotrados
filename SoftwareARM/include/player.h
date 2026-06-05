@@ -12,6 +12,7 @@ void         player_play_pause(void);
 void         player_next_track(void);
 void         player_prev_track(void);
 void         player_stop(void);
+void         player_update(void);   // llamar en el main loop — escribe un frame al buffer
 PlayerState  player_get_state(void);
 int          player_get_track(void);
 
