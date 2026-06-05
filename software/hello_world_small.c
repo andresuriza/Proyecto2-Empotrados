@@ -73,6 +73,10 @@ int main(void) {
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
     alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
 
+    // --- Apagar todos los HEX al inicio (activo bajo: 0x7F = segmento off) ---
+    IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, 0x0FFFFFFF);
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);
+
     // --- Audio IP: limpiar FIFOs ---
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // bits 2 y 3: clear FIFOs
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
