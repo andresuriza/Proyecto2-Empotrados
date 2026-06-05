@@ -77,8 +77,11 @@ int main(void) {
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, 0x0FFFFFFF);
     IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);
 
-    // --- Audio IP: limpiar FIFOs ---
-    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // bits 2 y 3: clear FIFOs
+    // --- Audio IP: esperar que el codec WM8731 termine de inicializar (~500ms) ---
+    // audio_and_video_config_0 envia I2C al arrancar; hay que darle tiempo
+    for (volatile uint32_t d = 0; d < 2500000; d++) {}
+
+    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // limpiar FIFOs
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
 
     // --- Shared memory ---
