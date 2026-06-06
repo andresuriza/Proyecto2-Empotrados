@@ -13,6 +13,9 @@
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
+// 1 = drenar el buffer sin tocar el Audio IP (aísla bus vs audio). 0 = audio normal.
+#define AUDIO_ISOLATION_TEST 1
+
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
 #define AUDIO_FIFO      4   // byte offset 4: [23:16]=left space [31:24]=right space
@@ -91,6 +94,7 @@ int main(void) {
     // --- Shared memory ---
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
+    uint32_t drained = 0;
 
     printf("Listo. Esperando ARM...\n");
 
@@ -131,7 +135,20 @@ int main(void) {
             uint32_t head = sh[IDX_HEAD];
 
             if (head != tail) {
-                // verificar espacio en FIFO — no bloqueante, skip si algún canal está lleno
+#if AUDIO_ISOLATION_TEST
+                // TEST: drenar el buffer SIN tocar el Audio IP.
+                // Si esto NO crashea -> el crash es del Audio IP, no del bus/memoria.
+                volatile uint32_t packed = sh[BUF_WORD_START + tail];
+                (void)packed;
+
+                tail = (tail + 1) % BUF_WORDS;
+                sh[IDX_TAIL] = tail;
+
+                drained++;
+                if ((drained % 100000) == 0)
+                    printf("DRAIN: drained=%u tail=%u head=%u\n",
+                           (unsigned)drained, (unsigned)tail, (unsigned)head);
+#else
                 static uint32_t dbg_a = 0;
                 if (!dbg_a) { printf("DBG-A: head=%u tail=%u\n", (unsigned)head, (unsigned)tail); dbg_a=1; }
 
@@ -154,6 +171,7 @@ int main(void) {
 
                 tail = (tail + 1) % BUF_WORDS;
                 sh[IDX_TAIL] = tail;
+#endif
             }
 
         } else if (cmd == 2) {
