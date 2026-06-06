@@ -15,8 +15,9 @@
 
 // 0 = audio normal
 // 1 = drenar buffer (lee sh[64+tail] + escribe sh[2]) -> RESETEA
-// 3 = drenar SIN leer el buffer (solo escribe sh[2]) -> aisla lectura vs escritura
-#define AUDIO_ISOLATION_TEST 3
+// 3 = drenar SIN leer el buffer (solo escribe sh[2]) -> RESETEA tambien
+// 4 = cmd=1 NO toca shared_mem (aisla escritura del NIOS vs acceso del ARM)
+#define AUDIO_ISOLATION_TEST 4
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
@@ -137,7 +138,13 @@ int main(void) {
             uint32_t head = sh[IDX_HEAD];
 
             if (head != tail) {
-#if AUDIO_ISOLATION_TEST
+#if AUDIO_ISOLATION_TEST == 4
+                // MODO 4: NO tocar la shared_mem (ni leer buffer ni escribir tail).
+                // Si igual rebootea -> es el acceso del ARM mientras el NIOS solo lee cmd/MON
+                // (hardware/bus). Si NO rebootea -> el trigger es la ESCRITURA sh[2] del NIOS.
+                static uint32_t dbg4 = 0;
+                if (!dbg4) { printf("MODE4: cmd=1, NO se toca shared_mem en el drain\n"); dbg4=1; }
+#elif AUDIO_ISOLATION_TEST
                 // TEST: drenar sin tocar el Audio IP.
   #if AUDIO_ISOLATION_TEST != 3
                 // modo 1: leer el buffer (acceso concurrente sh[64+] con el ARM)
