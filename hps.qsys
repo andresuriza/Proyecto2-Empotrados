@@ -294,13 +294,13 @@
   <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="Microphone to ADC" />
-  <parameter name="bit_length" value="24" />
+  <parameter name="bit_length" value="16" />
   <parameter name="board" value="DE10-Standard" />
   <parameter name="d5m_resolution" value="2592 x 1944" />
   <parameter name="dac_enable" value="true" />
   <parameter name="data_format" value="Left Justified" />
   <parameter name="device">On-Board Peripherals</parameter>
-  <parameter name="eai" value="false" />
+  <parameter name="eai" value="true" />
   <parameter name="exposure" value="false" />
   <parameter name="line_in_bypass" value="false" />
   <parameter name="mic_attenuation" value="-6dB" />
