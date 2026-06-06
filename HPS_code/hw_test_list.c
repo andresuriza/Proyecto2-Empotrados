@@ -46,8 +46,13 @@
 #define MAX_TRACKS  64
 #define MAX_PATH    512
 
-static char playlist[MAX_TRACKS][MAX_PATH];
-static int  n_tracks = 0;
+// Lectura por bloques: leer de a 2 bytes es muy lento y el ARM se atrasa de 48kHz
+// (el buffer se vacia y el audio baja de tono hacia el final). Leemos chunks grandes.
+#define CHUNK_FRAMES 2048               // debe ser < BUF_WORDS (16320)
+
+static char    playlist[MAX_TRACKS][MAX_PATH];
+static int     n_tracks = 0;
+static int16_t chunk[CHUNK_FRAMES * 2]; // L,R intercalados (o mono)
 
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
                      uint16_t *bits_out, uint32_t *data_size_out) {
@@ -138,34 +143,43 @@ static int play_track(volatile uint32_t *sh, const char *fname) {
     printf("Reproduciendo: %s (%u Hz, %u ch)\n", fname, sample_rate, channels);
 
     uint32_t total_frames = data_size / (channels * 2);
+    uint32_t frame_bytes  = channels * 2;
+    uint32_t remaining    = total_frames;
 
-    for (uint32_t i = 0; i < total_frames; i++) {
-        // peticion de control del NIOS?
+    while (remaining > 0) {
+        // leer un bloque grande de una sola vez (clave para no atrasarse de 48kHz)
+        uint32_t want = (remaining < CHUNK_FRAMES) ? remaining : CHUNK_FRAMES;
+        size_t   got  = fread(chunk, frame_bytes, want, wav);
+        if (got == 0) break;   // EOF inesperado
+
+        for (size_t j = 0; j < got; j++) {
+            int16_t sl, sr;
+            if (channels == 2) { sl = chunk[2 * j]; sr = chunk[2 * j + 1]; }
+            else               { sl = chunk[j];     sr = sl; }   // mono -> duplicar
+
+            uint32_t packed = ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
+
+            // backpressure: esperar espacio, romper si hay peticion (incluye pausa via NIOS)
+            uint32_t next = (head + 1) % BUF_WORDS;
+            while (next == sh[IDX_TAIL]) {
+                if (sh[IDX_REQ] != REQ_NONE) {
+                    int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
+                    fclose(wav); return r;
+                }
+            }
+
+            sh[BUF_WORD_START + head] = packed;
+            head = next;
+        }
+
+        sh[IDX_HEAD] = head;       // publicar la cabeza 1 vez por bloque (menos escrituras al bridge)
+        remaining   -= got;
+
+        // peticion de control entre bloques?
         if (sh[IDX_REQ] != REQ_NONE) {
             int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
             fclose(wav); return r;
         }
-
-        int16_t sl = 0, sr = 0;
-        fread(&sl, 2, 1, wav);
-        if (channels == 2) fread(&sr, 2, 1, wav);
-        else               sr = sl;   // mono -> duplicar
-
-        uint32_t packed = ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
-
-        // backpressure: esperar espacio, pero romper si hay peticion (incluye pausa via NIOS)
-        uint32_t next = (head + 1) % BUF_WORDS;
-        while (next == sh[IDX_TAIL]) {
-            if (sh[IDX_REQ] != REQ_NONE) break;
-        }
-        if (sh[IDX_REQ] != REQ_NONE) {
-            int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
-            fclose(wav); return r;
-        }
-
-        sh[BUF_WORD_START + head] = packed;
-        head = next;
-        sh[IDX_HEAD] = head;
     }
 
     // fin natural: esperar a que el NIOS drene lo que queda (no cortar el final)
