@@ -10,14 +10,14 @@
 #define IDX_CMD         0
 #define IDX_HEAD        1
 #define IDX_TAIL        2
+#define IDX_REQ         3   // NIOS -> ARM: peticion de control (0=nada,1=next,2=prev)
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
-// 0 = audio normal
-// 1 = drenar buffer (lee sh[64+tail] + escribe sh[2]) -> RESETEA
-// 3 = drenar SIN leer el buffer (solo escribe sh[2]) -> RESETEA tambien
-// 4 = cmd=1 NO toca shared_mem (aisla escritura del NIOS vs acceso del ARM)
-#define AUDIO_ISOLATION_TEST 0
+// Peticiones NIOS -> ARM (las ejecuta el ARM sobre su playlist)
+#define REQ_NONE        0
+#define REQ_NEXT        1
+#define REQ_PREV        2
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
@@ -52,18 +52,23 @@ static void timer_isr(void *ctx, alt_u32 id) {
     tick_ms++;
 }
 
-// --- Helpers HEX ---
-static void hex_write_lo(uint32_t val) {
-    uint32_t lo = ((uint32_t)seg7[(val >> 12) & 0xF] << 21) |
-                  ((uint32_t)seg7[(val >>  8) & 0xF] << 14) |
-                  ((uint32_t)seg7[(val >>  4) & 0xF] <<  7) |
-                   (uint32_t)seg7[(val >>  0) & 0xF];
+// --- Mostrar MM:SS en HEX3..HEX0 (escritura directa, NO bloquea como printf) ---
+// Layout pio_hex_lo: [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
+static void hex_show_time(uint32_t total_sec) {
+    uint32_t mm = (total_sec / 60) % 100;   // tope 99 min
+    uint32_t ss = total_sec % 60;
+    uint32_t d3 = (mm / 10) % 10;           // decenas de minuto
+    uint32_t d2 =  mm % 10;                 // unidades de minuto
+    uint32_t d1 =  ss / 10;                 // decenas de segundo
+    uint32_t d0 =  ss % 10;                 // unidades de segundo
+    uint32_t lo = ((uint32_t)seg7[d3] << 21) |
+                  ((uint32_t)seg7[d2] << 14) |
+                  ((uint32_t)seg7[d1] <<  7) |
+                   (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
 }
 
 int main(void) {
-    printf("NIOS II init\n");
-
     // --- Registrar IRQs ---
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_KEY_BASE, 0xF);
@@ -79,120 +84,92 @@ int main(void) {
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
     alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
 
-    // --- Apagar todos los HEX al inicio (activo bajo: 0x7F = segmento off) ---
-    IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, 0x0FFFFFFF);
-    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);
+    // --- HEX en 00:00 al inicio ---
+    hex_show_time(0);
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);  // HEX5..HEX4 apagados
 
-    // --- Audio IP: esperar que el codec WM8731 termine de inicializar (~500ms) ---
-    // audio_and_video_config_0 envia I2C al arrancar; hay que darle tiempo
+    // --- Audio IP: esperar que el codec WM8731 termine de auto-inicializar (~500ms) ---
     for (volatile uint32_t d = 0; d < 2500000; d++) {}
 
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // limpiar FIFOs
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
 
-    // PROBE: verificar que el registro FIFO del audio IP responde a lectura
-    uint32_t fifo_probe = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-    printf("AUDIO probe: base=0x%X fifo=0x%08X\n", (unsigned)AUDIO_0_BASE, (unsigned)fifo_probe);
-
     // --- Shared memory ---
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
-    uint32_t drained = 0;
 
-    printf("Listo. Esperando ARM...\n");
-
-    uint32_t last_sec = 0;
+    // --- Estado de reproduccion (para el reloj MM:SS) ---
+    uint32_t playing       = 0;
+    uint32_t start_ms      = 0;
+    uint32_t last_disp     = 0xFFFFFFFF;
+    uint32_t paused        = 0;
+    uint32_t pause_started = 0;
 
     while (1) {
 
-        // --- KEY ---
+        // --- KEY: control de reproduccion (sin printf para no bloquear el audio) ---
         if (key_event) {
             uint32_t k = key_event;
             key_event = 0;
-            uint32_t n = (k & 1) ? 0 : (k & 2) ? 1 : (k & 4) ? 2 : 3;
-            printf("[%u ms] KEY%u\n", (unsigned)tick_ms, (unsigned)n);
-            uint32_t lo = ((uint32_t)0x41 << 7) | seg7[n];
-            IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
+            if (k & 0x1) {                       // KEY0 = play/pausa
+                paused = !paused;
+                if (paused) pause_started = tick_ms;
+                else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
+            }
+            if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
+            if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
         }
-
-        // --- SW ---
-        if (sw_event) {
-            uint32_t sw = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x7;
-            sw_event = 0;
-            printf("[%u ms] SW: 0x%x\n", (unsigned)tick_ms, (unsigned)sw);
-        }
-
-        // --- Timer tick + MONITOR de shared_mem ---
-        uint32_t sec = tick_ms / 1000;
-        if (sec != last_sec) {
-            last_sec = sec;
-            printf("[%u s] MON sh[0]cmd=%u sh[1]head=%u sh[2]tail=%u sh[3]=0x%08X\n",
-                   (unsigned)sec, (unsigned)sh[IDX_CMD], (unsigned)sh[IDX_HEAD],
-                   (unsigned)sh[IDX_TAIL], (unsigned)sh[3]);
-        }
+        if (sw_event) { sw_event = 0; }
 
         // --- Audio polling ---
         uint32_t cmd = sh[IDX_CMD];
 
         if (cmd == 1) {
+            // arranque de cancion: fijar referencia de tiempo
+            if (!playing) {
+                playing   = 1;
+                paused    = 0;
+                start_ms  = tick_ms;
+                last_disp = 0xFFFFFFFF;
+            }
+
+            // actualizar HEX MM:SS una vez por segundo (congelado si esta en pausa)
+            if (!paused) {
+                uint32_t el = (tick_ms - start_ms) / 1000;
+                if (el != last_disp) {
+                    last_disp = el;
+                    hex_show_time(el);
+                }
+            }
+
             uint32_t head = sh[IDX_HEAD];
-
-            if (head != tail) {
-#if AUDIO_ISOLATION_TEST == 4
-                // MODO 4: NO tocar la shared_mem (ni leer buffer ni escribir tail).
-                // Si igual rebootea -> es el acceso del ARM mientras el NIOS solo lee cmd/MON
-                // (hardware/bus). Si NO rebootea -> el trigger es la ESCRITURA sh[2] del NIOS.
-                static uint32_t dbg4 = 0;
-                if (!dbg4) { printf("MODE4: cmd=1, NO se toca shared_mem en el drain\n"); dbg4=1; }
-#elif AUDIO_ISOLATION_TEST
-                // TEST: drenar sin tocar el Audio IP.
-  #if AUDIO_ISOLATION_TEST != 3
-                // modo 1: leer el buffer (acceso concurrente sh[64+] con el ARM)
-                volatile uint32_t packed = sh[BUF_WORD_START + tail];
-                (void)packed;
-  #endif
-                // modo 3: NO lee el buffer, solo avanza tail y escribe sh[2]
-                tail = (tail + 1) % BUF_WORDS;
-                sh[IDX_TAIL] = tail;
-
-                drained++;
-                if ((drained % 200) == 0)
-                    printf("DRAIN: drained=%u tail=%u head=%u\n",
-                           (unsigned)drained, (unsigned)tail, (unsigned)head);
-#else
-                static uint32_t dbg_a = 0;
-                if (!dbg_a) { printf("DBG-A: head=%u tail=%u\n", (unsigned)head, (unsigned)tail); dbg_a=1; }
-
+            if (!paused && head != tail) {   // en pausa: no drena -> buffer se llena -> ARM se frena
+                // espacio en FIFO? si algun canal esta lleno, reintentar (no bloquea)
                 uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-
-                static uint32_t dbg_b = 0;
-                if (!dbg_b) { printf("DBG-B: fifo=0x%08X\n", (unsigned)fifo); dbg_b=1; }
-
                 if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) continue;
 
+                // desempacar muestra: bits[31:16]=L bits[15:0]=R
                 uint32_t packed = sh[BUF_WORD_START + tail];
                 int32_t left  = (int32_t)(int16_t)(packed >> 16);
                 int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
-
-                static uint32_t dbg_c = 0;
-                if (!dbg_c) { printf("DBG-C: L=%d R=%d\n", (int)left, (int)right); dbg_c=1; }
 
                 IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
                 IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
 
                 tail = (tail + 1) % BUF_WORDS;
                 sh[IDX_TAIL] = tail;
-#endif
             }
 
         } else if (cmd == 2) {
             // STOP
+            playing = 0;
+            paused  = 0;
             tail = 0;
             sh[IDX_TAIL] = 0;
-            sh[IDX_CMD]  = 0;   // ACK: volver a idle (ARM ya salió, esto evita spin eterno)
+            sh[IDX_CMD]  = 0;   // ACK: volver a idle
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // clear FIFOs
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
-            printf("STOP\n");
+            // el HEX queda mostrando el tiempo final de la cancion
         }
     }
 
