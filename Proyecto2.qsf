@@ -141,9 +141,9 @@ set_location_assignment PIN_AB26 -to HEX5[4]
 set_location_assignment PIN_AA26 -to HEX5[5]
 set_location_assignment PIN_AA25 -to HEX5[6]
 set_global_assignment -name QSYS_FILE hps.qsys
+set_global_assignment -name VERILOG_FILE audio_pll.v
 set_global_assignment -name SYSTEMVERILOG_FILE mmio_slave.sv
 set_global_assignment -name SYSTEMVERILOG_FILE filter_select.sv
-set_global_assignment -name SYSTEMVERILOG_FILE tb_mmio_slave.sv
 set_global_assignment -name SYSTEMVERILOG_FILE mp3_player_top.sv
 set_global_assignment -name SYSTEMVERILOG_FILE seg7_timer.sv
 set_global_assignment -name VERILOG_FILE Proyecto2.v
