@@ -1359,47 +1359,47 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="audio_and_video_config_0.reset" />
- <connection kind="reset" version="18.1" start="hps_0.h2f_reset" end="cpu.reset" />
+ <connection kind="reset" version="18.1" start="clk_0.clk_reset" end="cpu.reset" />
  <connection
    kind="reset"
    version="18.1"
-   start="hps_0.h2f_reset"
-   end="pio_key.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="hps_0.h2f_reset"
-   end="pio_sw.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="hps_0.h2f_reset"
-   end="pio_hex_lo.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="hps_0.h2f_reset"
+   start="clk_0.clk_reset"
    end="pio_hex_hi.reset" />
  <connection
    kind="reset"
    version="18.1"
-   start="hps_0.h2f_reset"
-   end="jtag_uart.reset" />
+   start="clk_0.clk_reset"
+   end="pio_hex_lo.reset" />
  <connection
    kind="reset"
    version="18.1"
-   start="hps_0.h2f_reset"
+   start="clk_0.clk_reset"
+   end="pio_sw.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="pio_key.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
    end="sys_timer.reset" />
  <connection
    kind="reset"
    version="18.1"
-   start="hps_0.h2f_reset"
-   end="onchip_mem.reset1" />
+   start="clk_0.clk_reset"
+   end="jtag_uart.reset" />
  <connection
    kind="reset"
    version="18.1"
-   start="hps_0.h2f_reset"
+   start="clk_0.clk_reset"
    end="shared_mem.reset1" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="onchip_mem.reset1" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />

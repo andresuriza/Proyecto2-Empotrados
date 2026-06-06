@@ -13,8 +13,10 @@
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
-// 1 = drenar el buffer sin tocar el Audio IP (aísla bus vs audio). 0 = audio normal.
-#define AUDIO_ISOLATION_TEST 1
+// 0 = audio normal
+// 1 = drenar buffer (lee sh[64+tail] + escribe sh[2]) -> RESETEA
+// 3 = drenar SIN leer el buffer (solo escribe sh[2]) -> aisla lectura vs escritura
+#define AUDIO_ISOLATION_TEST 3
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
@@ -136,11 +138,13 @@ int main(void) {
 
             if (head != tail) {
 #if AUDIO_ISOLATION_TEST
-                // TEST: drenar el buffer SIN tocar el Audio IP.
-                // Si esto NO crashea -> el crash es del Audio IP, no del bus/memoria.
+                // TEST: drenar sin tocar el Audio IP.
+  #if AUDIO_ISOLATION_TEST != 3
+                // modo 1: leer el buffer (acceso concurrente sh[64+] con el ARM)
                 volatile uint32_t packed = sh[BUF_WORD_START + tail];
                 (void)packed;
-
+  #endif
+                // modo 3: NO lee el buffer, solo avanza tail y escribe sh[2]
                 tail = (tail + 1) % BUF_WORDS;
                 sh[IDX_TAIL] = tail;
 
