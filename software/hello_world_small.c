@@ -17,7 +17,7 @@
 // 1 = drenar buffer (lee sh[64+tail] + escribe sh[2]) -> RESETEA
 // 3 = drenar SIN leer el buffer (solo escribe sh[2]) -> RESETEA tambien
 // 4 = cmd=1 NO toca shared_mem (aisla escritura del NIOS vs acceso del ARM)
-#define AUDIO_ISOLATION_TEST 4
+#define AUDIO_ISOLATION_TEST 1
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
