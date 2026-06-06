@@ -20,7 +20,7 @@
 #define BUF_WORDS       16320           // palabras restantes en 64 KB
 
 // 1 = escribir pocas muestras y despacio (test de flood/contencion). 0 = normal.
-#define ARM_GENTLE_TEST 1
+#define ARM_GENTLE_TEST 0
 
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
                      uint16_t *bits_out, uint32_t *data_size_out) {
