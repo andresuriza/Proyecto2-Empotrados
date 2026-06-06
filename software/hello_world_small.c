@@ -130,13 +130,22 @@ int main(void) {
 
             if (head != tail) {
                 // verificar espacio en FIFO — no bloqueante, skip si algún canal está lleno
+                static uint32_t dbg_a = 0;
+                if (!dbg_a) { printf("DBG-A: head=%u tail=%u\n", (unsigned)head, (unsigned)tail); dbg_a=1; }
+
                 uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+
+                static uint32_t dbg_b = 0;
+                if (!dbg_b) { printf("DBG-B: fifo=0x%08X\n", (unsigned)fifo); dbg_b=1; }
+
                 if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) continue;
 
-                // desempacar muestra: bits[31:16]=L bits[15:0]=R
                 uint32_t packed = sh[BUF_WORD_START + tail];
                 int32_t left  = (int32_t)(int16_t)(packed >> 16);
                 int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+
+                static uint32_t dbg_c = 0;
+                if (!dbg_c) { printf("DBG-C: L=%d R=%d\n", (int)left, (int)right); dbg_c=1; }
 
                 IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
                 IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
