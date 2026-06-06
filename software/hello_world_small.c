@@ -129,9 +129,9 @@ int main(void) {
             uint32_t head = sh[IDX_HEAD];
 
             if (head != tail) {
-                // verificar espacio en FIFO — no bloqueante, skip si lleno
+                // verificar espacio en FIFO — no bloqueante, skip si algún canal está lleno
                 uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                if (((fifo >> 16) & 0xFF) == 0) continue; // sin espacio, iterar de nuevo
+                if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) continue;
 
                 // desempacar muestra: bits[31:16]=L bits[15:0]=R
                 uint32_t packed = sh[BUF_WORD_START + tail];
