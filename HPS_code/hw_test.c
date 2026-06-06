@@ -19,9 +19,6 @@
 #define BUF_WORD_START  64              // byte 0x100 / 4 palabras
 #define BUF_WORDS       16320           // palabras restantes en 64 KB
 
-// 1 = escribir pocas muestras y despacio (test de flood/contencion). 0 = normal.
-#define ARM_GENTLE_TEST 0
-
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
                      uint16_t *bits_out, uint32_t *data_size_out) {
     char tag[4];
@@ -95,23 +92,10 @@ int main(int argc, char *argv[]) {
 
     volatile uint32_t *sh = (volatile uint32_t *)((char*)lw + SHARED_OFFSET);
 
-    // --- LOOPBACK TEST: comprobar que la shared_mem realmente persiste ---
-    sh[3] = 0xDEADBEEF;
-    uint32_t rb3 = sh[3];
-    printf("ARM loopback sh[3]: escribi 0xDEADBEEF, lei 0x%08X %s\n",
-           rb3, (rb3 == 0xDEADBEEF) ? "OK" : "<-- FALLO, memoria NO persiste");
-
     // Inicializar mailbox
     sh[IDX_CMD]  = 0;
     sh[IDX_HEAD] = 0;
     sh[IDX_TAIL] = 0;   // limpiar TAIL residual de corrida anterior
-
-    uint32_t rb_tail = sh[IDX_TAIL];
-    printf("ARM sh[IDX_TAIL] readback tras escribir 0: 0x%08X %s\n",
-           rb_tail, (rb_tail == 0) ? "OK" : "<-- FALLO");
-
-    printf(">>> Pausa 5s: revisa la terminal del NIOS, debe mostrar sh[3]=0xDEADBEEF cmd=0\n");
-    sleep(5);
 
     uint32_t head = 0;
 
@@ -119,13 +103,6 @@ int main(int argc, char *argv[]) {
     printf("Reproduciendo...\n");
 
     uint32_t total_frames = data_size / (channels * 2); // frames de audio
-
-#if ARM_GENTLE_TEST
-    // TEST: escribir POCAS muestras y DESPACIO (sin inundar el bus).
-    // Si el NIOS las drena sin crashear -> el crash es por flood/contencion.
-    if (total_frames > 2000) total_frames = 2000;
-    printf(">>> MODO GENTIL: %u frames con delay (sin flood)\n", total_frames);
-#endif
 
     for (uint32_t i = 0; i < total_frames; i++) {
         int16_t sl = 0, sr = 0;
@@ -145,10 +122,6 @@ int main(int argc, char *argv[]) {
         sh[BUF_WORD_START + head] = packed;
         head = next;
         sh[IDX_HEAD] = head;
-
-#if ARM_GENTLE_TEST
-        usleep(500);   // ~2000 escrituras/seg: trafico minimo
-#endif
     }
 
     sh[IDX_CMD] = 2;    // STOP
