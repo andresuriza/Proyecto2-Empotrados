@@ -19,6 +19,9 @@
 #define BUF_WORD_START  64              // byte 0x100 / 4 palabras
 #define BUF_WORDS       16320           // palabras restantes en 64 KB
 
+// 1 = escribir pocas muestras y despacio (test de flood/contencion). 0 = normal.
+#define ARM_GENTLE_TEST 1
+
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
                      uint16_t *bits_out, uint32_t *data_size_out) {
     char tag[4];
@@ -117,6 +120,13 @@ int main(int argc, char *argv[]) {
 
     uint32_t total_frames = data_size / (channels * 2); // frames de audio
 
+#if ARM_GENTLE_TEST
+    // TEST: escribir POCAS muestras y DESPACIO (sin inundar el bus).
+    // Si el NIOS las drena sin crashear -> el crash es por flood/contencion.
+    if (total_frames > 2000) total_frames = 2000;
+    printf(">>> MODO GENTIL: %u frames con delay (sin flood)\n", total_frames);
+#endif
+
     for (uint32_t i = 0; i < total_frames; i++) {
         int16_t sl = 0, sr = 0;
         fread(&sl, 2, 1, wav);
@@ -135,6 +145,10 @@ int main(int argc, char *argv[]) {
         sh[BUF_WORD_START + head] = packed;
         head = next;
         sh[IDX_HEAD] = head;
+
+#if ARM_GENTLE_TEST
+        usleep(500);   // ~2000 escrituras/seg: trafico minimo
+#endif
     }
 
     sh[IDX_CMD] = 2;    // STOP

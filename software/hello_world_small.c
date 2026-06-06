@@ -145,7 +145,7 @@ int main(void) {
                 sh[IDX_TAIL] = tail;
 
                 drained++;
-                if ((drained % 100000) == 0)
+                if ((drained % 200) == 0)
                     printf("DRAIN: drained=%u tail=%u head=%u\n",
                            (unsigned)drained, (unsigned)tail, (unsigned)head);
 #else
