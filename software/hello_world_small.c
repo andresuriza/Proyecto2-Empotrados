@@ -115,11 +115,13 @@ int main(void) {
             printf("[%u ms] SW: 0x%x\n", (unsigned)tick_ms, (unsigned)sw);
         }
 
-        // --- Timer tick ---
+        // --- Timer tick + MONITOR de shared_mem ---
         uint32_t sec = tick_ms / 1000;
         if (sec != last_sec) {
             last_sec = sec;
-            printf("[%u s]\n", (unsigned)sec);
+            printf("[%u s] MON sh[0]cmd=%u sh[1]head=%u sh[2]tail=%u sh[3]=0x%08X\n",
+                   (unsigned)sec, (unsigned)sh[IDX_CMD], (unsigned)sh[IDX_HEAD],
+                   (unsigned)sh[IDX_TAIL], (unsigned)sh[3]);
         }
 
         // --- Audio polling ---

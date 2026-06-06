@@ -92,10 +92,24 @@ int main(int argc, char *argv[]) {
 
     volatile uint32_t *sh = (volatile uint32_t *)((char*)lw + SHARED_OFFSET);
 
+    // --- LOOPBACK TEST: comprobar que la shared_mem realmente persiste ---
+    sh[3] = 0xDEADBEEF;
+    uint32_t rb3 = sh[3];
+    printf("ARM loopback sh[3]: escribi 0xDEADBEEF, lei 0x%08X %s\n",
+           rb3, (rb3 == 0xDEADBEEF) ? "OK" : "<-- FALLO, memoria NO persiste");
+
     // Inicializar mailbox
     sh[IDX_CMD]  = 0;
     sh[IDX_HEAD] = 0;
     sh[IDX_TAIL] = 0;   // limpiar TAIL residual de corrida anterior
+
+    uint32_t rb_tail = sh[IDX_TAIL];
+    printf("ARM sh[IDX_TAIL] readback tras escribir 0: 0x%08X %s\n",
+           rb_tail, (rb_tail == 0) ? "OK" : "<-- FALLO");
+
+    printf(">>> Pausa 5s: revisa la terminal del NIOS, debe mostrar sh[3]=0xDEADBEEF cmd=0\n");
+    sleep(5);
+
     uint32_t head = 0;
 
     sh[IDX_CMD] = 1;    // PLAY
