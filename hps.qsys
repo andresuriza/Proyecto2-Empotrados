@@ -209,6 +209,14 @@
          type = "String";
       }
    }
+   element vga_text_controller_0
+   {
+      datum _sortIndex
+      {
+         value = "13";
+         type = "int";
+      }
+   }
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
@@ -272,6 +280,11 @@
  <interface
    name="sys_timer_ext"
    internal="sys_timer.external_port"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="vga"
+   internal="vga_text_controller_0.vga"
    type="conduit"
    dir="end" />
  <module
@@ -1177,6 +1190,11 @@
   <parameter name="timeoutPulseOutput" value="true" />
   <parameter name="watchdogPulse" value="2" />
  </module>
+ <module
+   name="vga_text_controller_0"
+   kind="vga_text_controller"
+   version="1.0"
+   enabled="1" />
  <connection
    kind="avalon"
    version="18.1"
@@ -1272,6 +1290,15 @@
    kind="avalon"
    version="18.1"
    start="hps_0.h2f_lw_axi_master"
+   end="vga_text_controller_0.avl">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00010000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="18.1"
+   start="hps_0.h2f_lw_axi_master"
    end="shared_mem.s2">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
@@ -1310,6 +1337,11 @@
  <connection kind="clock" version="18.1" start="clk_0.clk" end="sys_timer.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="onchip_mem.clk1" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="shared_mem.clk1" />
+ <connection
+   kind="clock"
+   version="18.1"
+   start="clk_0.clk"
+   end="vga_text_controller_0.clock" />
  <connection
    kind="clock"
    version="18.1"
@@ -1390,6 +1422,11 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="jtag_uart.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="vga_text_controller_0.reset" />
  <connection
    kind="reset"
    version="18.1"

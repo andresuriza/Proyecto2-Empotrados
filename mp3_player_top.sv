@@ -77,15 +77,8 @@ module mp3_player_top (
     input  logic [9:0]  SW
 );
 
-// ── VGA placeholder (no driver yet) ────────────────
-assign VGA_R       = 8'h0;
-assign VGA_G       = 8'h0;
-assign VGA_B       = 8'h0;
-assign VGA_HS      = 1'b1;
-assign VGA_VS      = 1'b1;
-assign VGA_BLANK_N = 1'b1;
-assign VGA_SYNC_N  = 1'b0;
-assign VGA_CLK     = 1'b0;
+// ── VGA: manejada por el vga_text_controller dentro del qsys ──
+// El conduit exportado se conecta a los pines en la instancia hps u0 (mas abajo).
 
 // ── PLL: genera 12.288 MHz para el codec WM8731 ─────────────
 logic pll_locked;
@@ -196,7 +189,17 @@ hps u0 (
     .h2f_mpu_events_standbywfi          (h2f_mpu_standbywfi),
 
     // sys_timer timeout pulse (manejado internamente por NIOS via IRQ)
-    .sys_timer_ext_export               (sys_timer_ext)
+    .sys_timer_ext_export               (sys_timer_ext),
+
+    // VGA (conduit del vga_text_controller)
+    .vga_r                              (VGA_R),
+    .vga_g                              (VGA_G),
+    .vga_b                              (VGA_B),
+    .vga_hs                             (VGA_HS),
+    .vga_vs                             (VGA_VS),
+    .vga_blank_n                        (VGA_BLANK_N),
+    .vga_sync_n                         (VGA_SYNC_N),
+    .vga_clk_pixel                      (VGA_CLK)
 );
 
 

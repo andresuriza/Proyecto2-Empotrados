@@ -61,4 +61,9 @@
 
 !*.tcl
 
+# Font de la VGA (font_rom carga estos; deben ir al repo)
+!font.mif
+!font.hex
+!gen_font_mif.py
+
 # End of https://www.toptal.com/developers/gitignore/api/alteraquartusii
