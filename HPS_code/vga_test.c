@@ -1,70 +1,104 @@
-// vga_test.c — prueba del vga_text_controller (independiente del audio).
-// Limpia la pantalla y escribe texto, para validar que la VGA renderiza.
+// ============================================================================
+//  vga_test.c  —  ARM (HPS) end-to-end test for the simple VGA controller
+// ----------------------------------------------------------------------------
+//  Runs on the DE1-SoC ARM HPS under Linux. Drives the memory-free VGA test
+//  controller (component "vga_text_controller") to prove the VGA chain works:
+//  it cycles through solid colours, the 8-bar test pattern and a checkerboard,
+//  printing each step so the screen can be correlated with the console.
 //
-// El controlador es un text buffer 80x30. Cada celda = 1 word de 32 bits:
-//   bits [7:0]   = ASCII (0x20..0x7E)
-//   bits [11:8]  = color de letra (fg), paleta 0..15
-//   bits [15:12] = color de fondo  (bg), paleta 0..15
-//   direccion de celda = fila*80 + col   (fila 0..29, col 0..79)
-// Paleta: 0 negro, 2 verde, 14 amarillo, 15 blanco (ver vga_text_controller.sv).
+//  Address map (see vga_text_controller.sv):
+//    component sits behind the HPS-to-FPGA Lightweight bridge (0xFF200000)
+//    at offset 0x10000  ->  absolute 0xFF210000.
+//    Avalon slave is WORD-addressed: word 0 = byte 0x0, word 1 = byte 0x4.
+//      word 0  BG_COLOR : [23:0] = {R[7:0], G[7:0], B[7:0]}
+//      word 1  MODE     : 0 = solid, 1 = colour bars, 2 = checkerboard
 //
-// Compilar en la placa:  gcc -o vga_test vga_test.c
-// Correr:                ./vga_test
+//  Compile (cross, DE1-SoC HPS Linux / Linaro toolchain):
+//    arm-linux-gnueabihf-gcc -O2 -o vga_test HPS_code/vga_test.c
+//  or natively on the board:
+//    gcc -O2 -o vga_test HPS_code/vga_test.c
+//
+//  Run on the board as root (needs /dev/mem):
+//    ./vga_test
+// ============================================================================
 
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/mman.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
-#define LW_BRIDGE_BASE  0xFF200000UL
-#define MAP_SIZE        0x80000
-#define VGA_OFFSET      0x10000      // base del vga_text_controller en el LW bridge
+#define LW_BRIDGE_BASE  0xFF200000UL    // HPS-to-FPGA Lightweight bridge
+#define MAP_SIZE        0x80000         // 512 KB (covers VGA at 0x10000)
+#define VGA_OFFSET      0x10000         // vga_text_controller base in the bridge
 
-#define COLS  80
-#define ROWS  30
+// Avalon WORD indices -> uint32_t array indices (word 0 = byte 0x0, word 1 = 0x4)
+#define REG_BG_COLOR    0
+#define REG_MODE        1
 
-static volatile uint32_t *vga;
+// MODE values
+#define MODE_SOLID      0
+#define MODE_BARS       1
+#define MODE_CHECKER    2
 
-// arma una celda: ascii + colores
-static inline uint32_t cell(char ch, uint8_t fg, uint8_t bg) {
-    return ((uint32_t)(bg & 0xF) << 12) | ((uint32_t)(fg & 0xF) << 8) | (uint8_t)ch;
-}
-
-static void vga_clear(uint8_t fg, uint8_t bg) {
-    uint32_t blank = cell(' ', fg, bg);
-    for (int i = 0; i < COLS * ROWS; i++) vga[i] = blank;
-}
-
-static void vga_print(int row, int col, const char *s, uint8_t fg, uint8_t bg) {
-    int idx = row * COLS + col;
-    for (int i = 0; s[i] && (col + i) < COLS; i++)
-        vga[idx + i] = cell(s[i], fg, bg);
-}
+// BG_COLOR helper: pack R,G,B into {R[23:16], G[15:8], B[7:0]}
+#define RGB(r, g, b)    (((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | (uint32_t)(b))
 
 int main(void) {
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if (fd < 0) { perror("open /dev/mem"); return 1; }
+    if (fd < 0) {
+        perror("open /dev/mem (run as root?)");
+        return 1;
+    }
 
-    volatile uint32_t *lw = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
-                                  MAP_SHARED, fd, LW_BRIDGE_BASE);
-    if (lw == MAP_FAILED) { perror("mmap"); close(fd); return 1; }
+    void *map = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
+                     fd, LW_BRIDGE_BASE);
+    if (map == MAP_FAILED) {
+        perror("mmap");
+        close(fd);
+        return 1;
+    }
 
-    vga = (volatile uint32_t *)((char *)lw + VGA_OFFSET);
+    volatile uint32_t *vga = (volatile uint32_t *)((char *)map + VGA_OFFSET);
 
-    // limpiar (letra blanca, fondo negro) y escribir texto de prueba
-    vga_clear(15, 0);
-    vga_print(2,  5, "VGA TEXT CONTROLLER OK", 14, 0);   // amarillo
-    vga_print(5,  5, "Reproductor de Audio - CE1113", 15, 0);
-    vga_print(7,  5, "Cancion: ---", 2, 0);              // verde
-    vga_print(8,  5, "Artista: ---", 2, 0);
-    vga_print(10, 5, "Si ves esto, la VGA funciona.", 15, 0);
+    printf("VGA test @ 0x%08lX (LW bridge 0x%08lX + 0x%05X)\n",
+           LW_BRIDGE_BASE + VGA_OFFSET, LW_BRIDGE_BASE, VGA_OFFSET);
 
-    printf("Texto escrito al VGA (0x%lX). Revisa la pantalla.\n",
-           LW_BRIDGE_BASE + VGA_OFFSET);
+    // Step 1: solid RED
+    printf("[1/6] MODE=solid, BG=RED   -> full red screen\n");
+    vga[REG_MODE]     = MODE_SOLID;
+    vga[REG_BG_COLOR] = RGB(0xFF, 0x00, 0x00);
+    sleep(2);
 
-    munmap((void *)lw, MAP_SIZE);
+    // Step 2: solid GREEN
+    printf("[2/6] MODE=solid, BG=GREEN -> full green screen\n");
+    vga[REG_BG_COLOR] = RGB(0x00, 0xFF, 0x00);
+    sleep(2);
+
+    // Step 3: solid BLUE
+    printf("[3/6] MODE=solid, BG=BLUE  -> full blue screen\n");
+    vga[REG_BG_COLOR] = RGB(0x00, 0x00, 0xFF);
+    sleep(2);
+
+    // Step 4: 8 vertical colour bars
+    printf("[4/6] MODE=bars            -> 8 vertical colour bars\n");
+    vga[REG_MODE] = MODE_BARS;
+    sleep(2);
+
+    // Step 5: checkerboard
+    printf("[5/6] MODE=checkerboard    -> checkerboard pattern\n");
+    vga[REG_MODE] = MODE_CHECKER;
+    sleep(2);
+
+    // Step 6: back to a solid colour and finish
+    printf("[6/6] MODE=solid, BG=BLACK -> done\n");
+    vga[REG_MODE]     = MODE_SOLID;
+    vga[REG_BG_COLOR] = RGB(0x00, 0x00, 0x00);
+
+    if (munmap(map, MAP_SIZE) != 0)
+        perror("munmap");
     close(fd);
+
+    printf("VGA test complete.\n");
     return 0;
 }

@@ -1,80 +1,70 @@
 // ============================================================================
-//  vga_text_controller.sv  —  TOP: Avalon-MM slave + VGA text renderer
+//  vga_text_controller.sv  —  SIMPLE memory-free VGA test controller
 // ----------------------------------------------------------------------------
-//  Custom VGA text-display controller for the DE1-SoC (Cyclone V), to be added
-//  as an Avalon-MM component in Platform Designer. The processor (Nios II / ARM
-//  HPS) writes already-formatted text — song title/artist/album/time, the track
-//  indicator ("3 / 10") and the filter status ("FILTER: LOWPASS") — into the
-//  character buffer. The hardware ONLY renders the buffer to a 640x480@60 VGA
-//  screen; it parses nothing. Software owns the entire screen layout.
+//  DE1-SoC (Cyclone V 5CSEMA5F31). Avalon-MM slave + VGA conduit, instantiated
+//  in Platform Designer as component "vga_text_controller".
+//
+//  This replaces the earlier text-mode design (font ROM + char buffer), whose
+//  on-chip memories would not infer as M10K on this device and overflowed the
+//  LABs. This version uses NO memory at all — pixel colour is purely
+//  combinational from two control registers and the h/v counters, so it fits
+//  trivially and lets software prove the VGA chain end-to-end.
+//
+//  The MODULE NAME, the Avalon-MM slave interface (ports/widths), the clock and
+//  the (synchronous, active-high) reset, and the VGA conduit are UNCHANGED from
+//  the original so the existing hps.qsys / vga_text_controller_hw.tcl
+//  instantiation still matches. Only the internals changed.
 //
 //  ────────────────────────────────────────────────────────────────────────
-//  SOFTWARE-VISIBLE INTERFACE  (read this, SW team)
+//  SOFTWARE-VISIBLE REGISTER MAP  (Avalon slave 'avl', addressUnits = WORDS)
 //  ────────────────────────────────────────────────────────────────────────
-//  The slave is a PURE TEXT BUFFER — there are no control/status registers.
+//  Base address (ARM, behind HPS-to-FPGA Lightweight bridge) = 0xFF210000.
+//  avl_address is a WORD index, so word N is at byte offset N*4.
 //
-//    * Word-addressed slave (Platform Designer: addressUnits = WORDS).
-//      avl_address is the CELL INDEX directly: 12 bits, range 0..2399.
-//          cell_index = row * 80 + col      (col 0..79, row 0..29)
-//      Byte offset (if your driver uses byte addresses) = cell_index * 4.
-//      The region rounds up to 4096 words = 16 KB of address space.
+//    word 0  (byte 0x0)  BG_COLOR : [23:0] = {R[7:0], G[7:0], B[7:0]}
+//                                   background / solid colour. [31:24] ignored.
+//    word 1  (byte 0x4)  MODE     : [1:0]
+//                                     0 = solid background (BG_COLOR)
+//                                     1 = 8 vertical colour bars (VGA test bars)
+//                                     2 = checkerboard (pixel_x[5] ^ pixel_y[5])
+//                                     3 = (reserved) -> solid background
+//    all other words read back 0 and ignore writes.
 //
-//    * One 16-bit character cell per 32-bit word:
-//
-//          bit 15 14 13 12 | 11 10  9  8 |  7  6  5  4  3  2  1  0
-//               \--- bg ---/  \--- fg ---/  \-------- ASCII --------/
-//
-//          [ 7:0]  printable ASCII code (0x20..0x7E); other codes -> blank
-//          [11:8]  foreground palette index (0..15)
-//          [15:12] background palette index (0..15)
-//          [31:16] unused — reads back 0, ignored on write
-//
-//    * 16-colour palette index -> colour (classic VGA/CGA):
-//          0 black     4 red       8  dark gray    12 bright red
-//          1 blue      5 magenta   9  bright blue   13 bright magenta
-//          2 green     6 brown     10 bright green  14 yellow
-//          3 cyan      7 lt gray   11 bright cyan   15 white
-//
-//    * byteenable[1:0] gate the two bytes of the cell (write just the ASCII
-//      byte, or just the attribute byte, if desired). byteenable[3:2] ignored.
-//    * Reads have a fixed latency of 1 clock; no waitrequest.
-//
-//  Example: put 'A' (0x41) white-on-blue at row 2, col 5:
-//      cell = {4'h1 /*bg blue*/, 4'hF /*fg white*/, 8'h41};  // 0x1F41
-//      write cell to address (2*80 + 5) = 165.
-//  ────────────────────────────────────────────────────────────────────────
-//
-//  RESET: synchronous, active-high (Platform Designer reset sink default).
-//  CLOCK: single 50 MHz domain; an internal /2 enable drives the 25 MHz pixel
-//  pipeline and the VGA_CLK output (no clock-domain crossing).
+//  Reads have a fixed latency of 1 clock (no waitrequest). RGB is forced to 0
+//  outside the visible region (blanking).
 // ============================================================================
 
 module vga_text_controller (
     // ── Clock & reset ────────────────────────────────────────────────────────
-    input  logic        clk,            // 50 MHz (CLOCK_50)
-    input  logic        reset,          // synchronous, active-high
+    input  logic        clk,            // 50 MHz (clk_0.clk)
+    input  logic        reset,          // synchronous, active-high (clk_0.clk_reset)
 
-    // ── Avalon-MM slave (text buffer) ────────────────────────────────────────
-    input  logic [11:0] avl_address,    // cell index (word-addressed)
+    // ── Avalon-MM slave 'avl' (word-addressed) ───────────────────────────────
+    input  logic [11:0] avl_address,    // word index
     input  logic        avl_read,
     output logic [31:0] avl_readdata,
     input  logic        avl_write,
     input  logic [31:0] avl_writedata,
-    input  logic [3:0]  avl_byteenable,
+    input  logic [3:0]  avl_byteenable, // present in the interface; control regs
+                                        // are written as full 32-bit words
 
-    // ── VGA conduit (to ADV7123 DAC + HSYNC/VSYNC) ───────────────────────────
+    // ── VGA conduit 'vga' (to ADV7123 DAC + HSYNC/VSYNC) ─────────────────────
     output logic [7:0]  vga_r,
     output logic [7:0]  vga_g,
     output logic [7:0]  vga_b,
     output logic        vga_hs,         // active LOW
     output logic        vga_vs,         // active LOW
-    output logic        vga_blank_n,    // active video (high in visible region)
+    output logic        vga_blank_n,    // high in visible region
     output logic        vga_sync_n,     // composite sync — unused, tied low
     output logic        vga_clk         // 25 MHz pixel clock to DAC
 );
 
-    // ── VGA timing generator ─────────────────────────────────────────────────
-    logic        pix_en;                // unused at top (pipeline runs every clk)
+    // ── Register addresses (word indices) ────────────────────────────────────
+    localparam logic [11:0] REG_BG_COLOR = 12'd0;   // byte offset 0x0
+    localparam logic [11:0] REG_MODE     = 12'd1;   // byte offset 0x4
+
+    // ── VGA timing generator (unchanged module) ──────────────────────────────
+    logic        pix_en;                // 25 MHz enable (used inside vga_timing)
     logic [9:0]  pixel_x, pixel_y;
     logic        active, hsync, vsync;
 
@@ -90,58 +80,85 @@ module vga_text_controller (
         .active      (active)
     );
 
-    // ── Character buffer (true dual-port M10K) ───────────────────────────────
-    // Port A : Avalon side.  Port B : renderer side.
-    logic [11:0] b_addr;
-    logic [15:0] b_rdata;
-    logic [15:0] a_rdata;
+    // ── Control registers ────────────────────────────────────────────────────
+    logic [23:0] bg_color;
+    logic [1:0]  mode;
 
-    text_buffer u_buffer (
-        .clk      (clk),
-        // Port A — Avalon
-        .a_addr   (avl_address),
-        .a_we     (avl_write),
-        .a_byteen (avl_byteenable[1:0]),
-        .a_wdata  (avl_writedata[15:0]),
-        .a_rdata  (a_rdata),
-        // Port B — renderer
-        .b_addr   (b_addr),
-        .b_rdata  (b_rdata)
-    );
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            bg_color <= 24'h000000;
+            mode     <= 2'd0;
+        end else if (avl_write) begin
+            case (avl_address)
+                REG_BG_COLOR: bg_color <= avl_writedata[23:0];
+                REG_MODE:     mode     <= avl_writedata[1:0];
+                default:      ; // no other writable registers
+            endcase
+        end
+    end
 
-    // Avalon read data: cell in the low half-word, upper half reads 0.
-    // RAM read latency is 1 clock -> matches a fixed-latency-1 Avalon slave.
-    assign avl_readdata = {16'h0000, a_rdata};
+    // ── Avalon read (registered, latency 1) ──────────────────────────────────
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            avl_readdata <= 32'h0;
+        end else if (avl_read) begin
+            case (avl_address)
+                REG_BG_COLOR: avl_readdata <= {8'h00, bg_color};
+                REG_MODE:     avl_readdata <= {30'h0, mode};
+                default:      avl_readdata <= 32'h0;
+            endcase
+        end
+    end
 
-    // ── Font ROM ─────────────────────────────────────────────────────────────
-    logic [11:0] font_addr;
-    logic [7:0]  font_row;
+    // ── Combinational pixel colour ───────────────────────────────────────────
+    //  8-colour table for the test bars (full 8-bit-per-channel).
+    function automatic logic [23:0] bar_color(input logic [2:0] idx);
+        unique case (idx)
+            3'd0: bar_color = 24'hFF_FF_FF; // white
+            3'd1: bar_color = 24'hFF_FF_00; // yellow
+            3'd2: bar_color = 24'h00_FF_FF; // cyan
+            3'd3: bar_color = 24'h00_FF_00; // green
+            3'd4: bar_color = 24'hFF_00_FF; // magenta
+            3'd5: bar_color = 24'hFF_00_00; // red
+            3'd6: bar_color = 24'h00_00_FF; // blue
+            3'd7: bar_color = 24'h00_00_00; // black
+        endcase
+    endfunction
 
-    font_rom u_font (
-        .clk  (clk),
-        .addr (font_addr),
-        .data (font_row)
-    );
+    logic [2:0]  bar;
+    logic        checker;
+    logic [23:0] color;
 
-    // ── Renderer : coords -> cell -> glyph pixel -> RGB ──────────────────────
-    char_renderer u_render (
-        .clk         (clk),
-        .pixel_x     (pixel_x),
-        .pixel_y     (pixel_y),
-        .active      (active),
-        .hsync       (hsync),
-        .vsync       (vsync),
-        .cell_addr   (b_addr),
-        .cell_data   (b_rdata),
-        .font_addr   (font_addr),
-        .font_row    (font_row),
-        .vga_r       (vga_r),
-        .vga_g       (vga_g),
-        .vga_b       (vga_b),
-        .vga_hs      (vga_hs),
-        .vga_vs      (vga_vs),
-        .vga_blank_n (vga_blank_n)
-    );
+    assign bar     = (pixel_x / 10'd80);   // 640/8 = 80 px per bar -> 0..7
+    assign checker = pixel_x[5] ^ pixel_y[5];
+
+    always_comb begin
+        unique case (mode)
+            2'd0:    color = bg_color;                          // solid
+            2'd1:    color = bar_color(bar);                    // colour bars
+            2'd2:    color = checker ? 24'hFF_FF_FF : 24'h00_00_00; // checkerboard
+            default: color = bg_color;                          // reserved -> solid
+        endcase
+    end
+
+    // ── Registered VGA outputs (RGB + sync aligned, blanking forces RGB=0) ────
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            vga_r       <= 8'h0;
+            vga_g       <= 8'h0;
+            vga_b       <= 8'h0;
+            vga_hs      <= 1'b1;          // sync idle level (active LOW)
+            vga_vs      <= 1'b1;
+            vga_blank_n <= 1'b0;
+        end else begin
+            vga_r       <= active ? color[23:16] : 8'h0;
+            vga_g       <= active ? color[15:8]  : 8'h0;
+            vga_b       <= active ? color[7:0]   : 8'h0;
+            vga_hs      <= hsync;
+            vga_vs      <= vsync;
+            vga_blank_n <= active;
+        end
+    end
 
     // ADV7123 composite sync-on-green is not used in RGB mode -> tie low.
     assign vga_sync_n = 1'b0;
