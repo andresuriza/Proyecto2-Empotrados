@@ -1,63 +1,63 @@
 // ============================================================================
-//  text_buffer.sv  —  True dual-port character RAM (inferred M10K)
+//  text_buffer.sv  —  Simple dual-port character RAM (inferred M10K)
 // ----------------------------------------------------------------------------
 //  Holds the 80x30 = 2400 character cells rendered to the VGA screen. The
-//  processor writes cells through Port A (the Avalon-MM side); the renderer
-//  reads cells through Port B. Both ports are registered-read so Quartus infers
-//  Cyclone V M10K block RAM (a true dual-port RAM with one read+write port and
-//  one read-only port). Depth is rounded up to 4096 so the address is a clean
-//  12-bit word index; only 0..2399 are used.
+//  processor WRITES cells through Port A (the Avalon-MM side); the renderer
+//  READS cells through Port B. Es un display de SOLO ESCRITURA: el software
+//  escribe el texto y nunca necesita leerlo de vuelta, asi que el puerto A es
+//  write-only y a_rdata = 0. Eso lo vuelve un SIMPLE dual-port (1 write + 1
+//  read), que Quartus infiere de forma CONFIABLE como M10K block RAM.
 //
-//  CELL BIT LAYOUT (16 bits, fully used — no reserved bits)
+//  (La version anterior era true dual-port con byte-enable + read-back en el
+//   mismo puerto; esa combinacion NO infirio M10K y cayo a logica -> 65536
+//   flip-flops -> no cabia en el FPGA.)
 //
+//  CELL BIT LAYOUT (16 bits):
 //     bit 15 14 13 12 | 11 10  9  8 |  7  6  5  4  3  2  1  0
 //          \--- bg ---/  \--- fg ---/  \-------- ASCII --------/
 //
-//     [ 7:0]  printable ASCII code (0x20..0x7E)
-//     [11:8]  foreground palette index (16-color)
-//     [15:12] background palette index (16-color)
-//
 //  ADDRESSING: addr = cell index = row*80 + col  (0..2399).
-//
-//  RESET: none. Block RAM contents are not reset (M10K has no reset port); the
-//  processor is expected to clear/initialise the screen at boot. Avoiding a
-//  reset here is what allows clean M10K inference.
+//  RESET: none. El procesador limpia/inicializa la pantalla al boot.
 // ============================================================================
 
 module text_buffer #(
     parameter int ADDR_W = 12,          // 4096 words
-    parameter int DATA_W = 16           // bits per cell
+    parameter int DATA_W = 16           // bits por celda
 ) (
     input  logic                clk,
 
-    // ── Port A : Avalon-MM write/read side (processor) ───────────────────────
+    // ── Port A : write-only (procesador / Avalon) ────────────────────────────
     input  logic [ADDR_W-1:0]   a_addr,
-    input  logic                a_we,       // write enable
-    input  logic [1:0]          a_byteen,   // [0]=low byte, [1]=high byte of cell
+    input  logic                a_we,
+    input  logic [1:0]          a_byteen,   // [0]=byte bajo, [1]=byte alto
     input  logic [DATA_W-1:0]   a_wdata,
-    output logic [DATA_W-1:0]   a_rdata,    // registered read-back
+    output logic [DATA_W-1:0]   a_rdata,    // readback NO usado -> 0
 
-    // ── Port B : renderer read side (read-only) ──────────────────────────────
+    // ── Port B : read-only (renderer) ────────────────────────────────────────
     input  logic [ADDR_W-1:0]   b_addr,
-    output logic [DATA_W-1:0]   b_rdata     // registered read
+    output logic [DATA_W-1:0]   b_rdata     // lectura registrada
 );
 
-    // Shared memory array — inferred as M10K true dual-port RAM.
-    (* ramstyle = "M10K" *)
+    // Simple dual-port (1 write + 1 read) -> inferencia M10K confiable.
+    // no_rw_check: lectura/escritura simultanea a la misma direccion = don't care
+    // (en un display de texto no importa), ayuda a la inferencia del block RAM.
+    (* ramstyle = "M10K, no_rw_check" *)
     logic [DATA_W-1:0] mem [0:(1<<ADDR_W)-1];
 
-    // ── Port A : byte-enabled write, registered read-back ────────────────────
+    // ── Port A : escritura byte-enable (sin read-back) ───────────────────────
     always_ff @(posedge clk) begin
         if (a_we) begin
             if (a_byteen[0]) mem[a_addr][7:0]  <= a_wdata[7:0];
             if (a_byteen[1]) mem[a_addr][15:8] <= a_wdata[15:8];
         end
-        a_rdata <= mem[a_addr];         // read-first behaviour is fine here
     end
 
-    // ── Port B : read-only, registered ───────────────────────────────────────
+    // ── Port B : lectura registrada (renderer) ───────────────────────────────
     always_ff @(posedge clk) begin
         b_rdata <= mem[b_addr];
     end
+
+    // El puerto A es de solo escritura; el readback no se usa.
+    assign a_rdata = '0;
 
 endmodule
