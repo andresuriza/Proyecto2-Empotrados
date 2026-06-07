@@ -86,8 +86,8 @@ module vga_text_controller (
 
     always_ff @(posedge clk) begin
         if (reset) begin
-            bg_color <= 24'hFFFFFF;   // DIAGNOSTIC: power-up bright white
-            mode     <= 2'd1;         // DIAGNOSTIC: power-up colour bars (no Avalon write needed)
+            bg_color <= 24'h000000;
+            mode     <= 2'd0;
         end else if (avl_write) begin
             case (avl_address)
                 REG_BG_COLOR: bg_color <= avl_writedata[23:0];
