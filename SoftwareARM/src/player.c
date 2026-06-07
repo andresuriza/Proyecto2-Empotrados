@@ -5,15 +5,25 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// Frames por bloque — fix del tono grave
+// 2048 frames * 2 canales * 2 bytes = 8192 bytes por lectura
+#define FRAMES_PER_READ   2048
+
 static PlayerState state         = PLAYER_STOPPED;
 static int         current_track = 0;
 static int         total_tracks  = 0;
-
 static SongInfo    songs[MAX_SONGS];
 static WavInfo     wav_info;
-static uint32_t    head = 0;
+static uint32_t    head          = 0;
 
-static volatile uint32_t *sh = (volatile uint32_t *) SHARED_MEM_BASE;
+#ifdef TARGET_SIMULATION
+  // En simulación sh[] es el array interno de mailbox.c
+  // Accedemos via funciones del mailbox únicamente
+  static uint32_t _sim_buf[SH_BUF_START + SH_BUF_WORDS];
+  static volatile uint32_t* sh = _sim_buf;
+#else
+  static volatile uint32_t* sh = (volatile uint32_t*) SHARED_MEM_BASE;
+#endif
 
 static void open_track(int idx) {
     storage_close_song();
@@ -29,15 +39,21 @@ static void open_track(int idx) {
     // Reabrir y saltar al inicio de los datos PCM
     if (storage_open_song(songs[idx].filename) != 0 ||
         storage_seek(wav_info.data_offset) != 0) {
-        printf("[PLAYER] Error abriendo datos de %s\n", songs[idx].filename);
+        printf("[PLAYER] Error abriendo datos de %s\n",
+               songs[idx].filename);
         state = PLAYER_STOPPED;
         return;
     }
 
+    // Resync limpio: stop → reset head → play
+    mailbox_stop();
     head = 0;
+    mailbox_set_head(0);
     mailbox_init();
     mailbox_play();
-    printf("[PLAYER] Reproduciendo [%d] %s\n", idx + 1, songs[idx].filename);
+
+    printf("[PLAYER] Reproduciendo [%d] %s\n",
+           idx + 1, songs[idx].filename);
 }
 
 void player_init(void) {
@@ -67,13 +83,13 @@ void player_play_pause(void) {
             open_track(current_track);
             break;
         case PLAYER_PAUSED:
+            // Pausa la maneja el NIOS — no hacer nada desde ARM
             state = PLAYER_PLAYING;
-            mailbox_play();
             printf("[PLAYER] Reanudando cancion %d\n", current_track + 1);
             break;
         case PLAYER_PLAYING:
+            // Pausa la maneja el NIOS con backpressure
             state = PLAYER_PAUSED;
-            mailbox_stop();
             printf("[PLAYER] Pausado en cancion %d\n", current_track + 1);
             break;
     }
@@ -101,33 +117,52 @@ void player_stop(void) {
     printf("[PLAYER] Detenido\n");
 }
 
-// Llamar en el main loop — escribe un frame PCM al buffer si hay espacio
+// Llamar en el main loop — escribe bloques de audio al buffer
 void player_update(void) {
     if (state != PLAYER_PLAYING) return;
 
-    // Verificar espacio en buffer circular
-    uint32_t tail = mailbox_get_tail();
-    uint32_t next = (head + 1) % SH_BUF_WORDS;
-    if (next == tail) return; // buffer lleno
+    // Leer bloque de FRAMES_PER_READ frames
+    int16_t frames[FRAMES_PER_READ * 2]; // stereo
+    uint32_t bytes_to_read = FRAMES_PER_READ
+                           * wav_info.num_channels
+                           * (wav_info.bits_per_sample / 8);
 
-    // Leer un frame (2 bytes por canal)
-    int16_t sl = 0, sr = 0;
-    if (storage_read_bytes((uint8_t *)&sl, 2) < 2) {
-        // Fin del archivo
-        printf("[PLAYER] Fin de cancion %d\n", current_track + 1);
-        player_stop();
+    int bytes_read = storage_read_bytes(
+        (uint8_t*)frames, bytes_to_read);
+
+    if (bytes_read <= 0) {
+        // Fin del archivo → auto-siguiente
+        printf("[PLAYER] Fin de cancion %d → siguiente\n",
+               current_track + 1);
+        player_next_track();
         return;
     }
 
-    if (wav_info.num_channels == 2)
-        storage_read_bytes((uint8_t *)&sr, 2);
-    else
-        sr = sl; // mono → duplicar
+    // Calcular frames reales leídos
+    int frames_read = bytes_read
+                    / (wav_info.num_channels
+                    * (wav_info.bits_per_sample / 8));
 
-    // Empacar L y R: bits[31:16]=L bits[15:0]=R
-    sh[SH_BUF_START + head] = ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
-    head = next;
-    mailbox_set_head(head);
+    // Escribir frames al buffer circular de shared memory
+    for (int i = 0; i < frames_read; i++) {
+        uint32_t tail = mailbox_get_tail();
+        uint32_t next = (head + 1) % SH_BUF_WORDS;
+
+        // Buffer lleno — esperar
+        if (next == tail) break;
+
+        int16_t sl = frames[i * wav_info.num_channels];
+        int16_t sr = (wav_info.num_channels == 2)
+                   ? frames[i * wav_info.num_channels + 1]
+                   : sl;
+
+        // Empacar L y R: bits[31:16]=L bits[15:0]=R
+        sh[SH_BUF_START + head] =
+            ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
+
+        head = next;
+        mailbox_set_head(head);
+    }
 }
 
 PlayerState player_get_state(void) { return state; }
