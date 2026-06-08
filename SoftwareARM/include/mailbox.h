@@ -17,5 +17,6 @@ uint32_t mailbox_get_tail(void);
 void     mailbox_set_head(uint32_t head);
 uint32_t mailbox_get_req(void);
 void     mailbox_clear_req(void);
+void     mailbox_wait_ack(void);   // espera a que el NIOS procese el STOP (CMD->0)
 
 #endif

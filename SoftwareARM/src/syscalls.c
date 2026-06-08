@@ -1,23 +1,25 @@
 #include <sys/stat.h>
 #include <stdint.h>
 
-// PL011 UART - vexpress-a9
-#define UART_DR  (*(volatile unsigned int*)0x10009000)
-#define UART_FR  (*(volatile unsigned int*)0x10009018)
-#define UART_RXFE (1 << 4)   // Receive FIFO empty
+// HPS UART0 (DesignWare 16550) — consola serial de la DE1-SoC (la de socfpga)
+#define UART_THR  (*(volatile unsigned int*)0xFFC02000)          // dato TX/RX (offset 0x00)
+#define UART_LSR  (*(volatile unsigned int*)(0xFFC02000 + 0x14)) // Line Status Register
+#define LSR_THRE  (1 << 5)   // Transmit Holding Empty -> listo para transmitir
+#define LSR_DR    (1 << 0)   // Data Ready -> hay byte para recibir
 
-// printf → escribe al UART sin verificar TXFF
+// printf → escribe al UART esperando que el TX este listo
 int _write(int fd, char* buf, int len) {
     for (int i = 0; i < len; i++) {
-        UART_DR = buf[i];
+        while (!(UART_LSR & LSR_THRE));   // esperar TX listo
+        UART_THR = (unsigned char)buf[i];
     }
     return len;
 }
 
 // getchar → lee del UART esperando que llegue un byte
 int _read(int fd, char* buf, int len) {
-    while (UART_FR & UART_RXFE);     // esperar hasta que haya dato
-    buf[0] = (char)(UART_DR & 0xFF);
+    while (!(UART_LSR & LSR_DR));          // esperar hasta que haya dato
+    buf[0] = (char)(UART_THR & 0xFF);
     return 1;
 }
 

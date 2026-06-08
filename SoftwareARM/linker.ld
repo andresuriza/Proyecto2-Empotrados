@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x60000000;
+    . = 0x00100000;     /* DDR3 real de la DE1-SoC (antes 0x60000000 = QEMU) */
 
     .text : {
         *(.text.startup)
@@ -20,6 +20,6 @@ SECTIONS {
     }
 
     . = ALIGN(8);
-    . = . + 0x4000;
+    . = . + 0x8000;     /* stack 32KB (player_update usa ~8KB de buffer en stack) */
     __stack_top = .;
 }

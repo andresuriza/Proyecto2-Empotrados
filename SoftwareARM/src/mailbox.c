@@ -48,3 +48,9 @@ uint32_t mailbox_get_req(void) {
 void mailbox_clear_req(void) {
     sh[SH_IDX_REQ] = REQ_NONE;
 }
+
+// Espera a que el NIOS procese el STOP: su handler pone sh[CMD]=0 (ACK) tras
+// resetear su tail y limpiar el FIFO. Con tope para no colgar si el NIOS no responde.
+void mailbox_wait_ack(void) {
+    for (volatile uint32_t w = 0; w < 5000000U && sh[SH_IDX_CMD] != CMD_NONE; w++) { }
+}

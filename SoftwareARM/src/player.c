@@ -45,11 +45,13 @@ static void open_track(int idx) {
         return;
     }
 
-    // Resync limpio: stop → reset head → play
+    // Resync limpio: STOP → esperar ACK del NIOS (resetea su tail y limpia FIFO)
+    // → resetear punteros → PLAY. Sin el wait, el NIOS puede no ver el CMD=2 y
+    // quedar desincronizado al cambiar de cancion.
     mailbox_stop();
+    mailbox_wait_ack();
     head = 0;
     mailbox_set_head(0);
-    mailbox_init();
     mailbox_play();
 
     printf("[PLAYER] Reproduciendo [%d] %s\n",
@@ -145,11 +147,15 @@ void player_update(void) {
 
     // Escribir frames al buffer circular de shared memory
     for (int i = 0; i < frames_read; i++) {
-        uint32_t tail = mailbox_get_tail();
         uint32_t next = (head + 1) % SH_BUF_WORDS;
 
-        // Buffer lleno — esperar
-        if (next == tail) break;
+        // Backpressure: esperar espacio SIN perder frames (antes hacia break y
+        // descartaba el resto del bloque -> se perdia ~99% del audio).
+        // Si el NIOS pide next/prev, salir y dejar que el main loop lo maneje
+        // (al cambiar de cancion se hace resync, asi que no importa el frame actual).
+        while (next == mailbox_get_tail()) {
+            if (mailbox_get_req() != REQ_NONE) return;
+        }
 
         int16_t sl = frames[i * wav_info.num_channels];
         int16_t sr = (wav_info.num_channels == 2)
