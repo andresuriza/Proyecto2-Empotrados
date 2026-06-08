@@ -170,9 +170,17 @@ DSTATUS disk_initialize(BYTE pdrv) {
            (unsigned)resp, (unsigned)ocr, card_sdhc);
     {
         static uint8_t sec[512];
-        DRESULT r = disk_read(0, sec, 0, 1);
-        printf("[SD] sector0 r=%d  [0..3]=%02X %02X %02X %02X  sig[510,511]=%02X %02X (debe ser 55 AA)\n",
-               (int)r, sec[0], sec[1], sec[2], sec[3], sec[510], sec[511]);
+        disk_read(0, sec, 0, 1);
+        // Tabla de particiones MBR, entrada 1 (offset 446): tipo en +4, LBA inicio en +8
+        uint8_t  ptype = sec[446 + 4];
+        uint32_t plba  = (uint32_t)sec[446 + 8]        | ((uint32_t)sec[446 + 9]  << 8) |
+                         ((uint32_t)sec[446 + 10] << 16) | ((uint32_t)sec[446 + 11] << 24);
+        printf("[SD] MBR sig=%02X%02X  part1 type=0x%02X startLBA=%u\n",
+               sec[510], sec[511], ptype, (unsigned)plba);
+        // Boot sector de esa particion (deberia empezar con EB/E9 y terminar 55 AA)
+        DRESULT r2 = disk_read(0, sec, plba, 1);
+        printf("[SD] PBS@%u r=%d  [0..2]=%02X %02X %02X  sig=%02X%02X\n",
+               (unsigned)plba, (int)r2, sec[0], sec[1], sec[2], sec[510], sec[511]);
     }
 
     return 0;
