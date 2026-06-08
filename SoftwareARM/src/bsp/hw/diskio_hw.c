@@ -1,5 +1,6 @@
 #include "../lib/fatfs/ff.h"
 #include "../lib/fatfs/diskio.h"
+#include <stdio.h>   // DEBUG
 
 // ══════════════════════════════════════════════════════════
 // HPS SDMMC Controller — Cyclone V
@@ -161,6 +162,17 @@ DSTATUS disk_initialize(BYTE pdrv) {
     SDMMC_CTYPE = 1;
 
     card_initialized = 1;
+
+    // --- DEBUG: trazar la init y volcar el sector 0 ---
+    printf("[SD] CMD8=0x%X  ocr=0x%X  card_sdhc=%d\n",
+           (unsigned)resp, (unsigned)ocr, card_sdhc);
+    {
+        static uint8_t sec[512];
+        DRESULT r = disk_read(0, sec, 0, 1);
+        printf("[SD] sector0 r=%d  [0..3]=%02X %02X %02X %02X  sig[510,511]=%02X %02X (debe ser 55 AA)\n",
+               (int)r, sec[0], sec[1], sec[2], sec[3], sec[510], sec[511]);
+    }
+
     return 0;
 }
 
