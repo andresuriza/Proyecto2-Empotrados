@@ -158,8 +158,10 @@ DSTATUS disk_initialize(BYTE pdrv) {
     SDMMC_CLKENA = 1;
     sdmmc_update_clock();
 
-    // Bus width 4 bits
-    SDMMC_CTYPE = 1;
+    // Bus width: 1 bit. (4 bits requiere mandar ACMD6 a la tarjeta primero;
+    // sin eso, el controlador en 4-bit no recibe datos -> FIFO vacio -> ceros.
+    // 1 bit es mas lento pero no necesita ACMD6 -> robusto para bring-up.)
+    SDMMC_CTYPE = 0;
 
     card_initialized = 1;
 
