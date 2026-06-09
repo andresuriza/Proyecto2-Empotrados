@@ -2,6 +2,15 @@
 .global _start
 
 _start:
+    @ Permitir accesos no alineados a memoria normal (SCTLR.A = 0).
+    @ U-Boot deja el chequeo de alineacion activo; sin esto, memcpy/strcpy de
+    @ newlib (precompilados, hacen accesos de palabra no alineados) provocan
+    @ "data abort" al copiar p.ej. nombres de archivo de longitud impar.
+    mrc p15, 0, r0, c1, c0, 0     @ leer SCTLR
+    bic r0, r0, #(1 << 1)         @ limpiar bit A (alignment fault enable)
+    mcr p15, 0, r0, c1, c0, 0     @ escribir SCTLR
+    isb
+
     @ Configurar stack pointer
     ldr sp, =__stack_top
 

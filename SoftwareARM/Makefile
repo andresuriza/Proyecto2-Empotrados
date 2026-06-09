@@ -12,10 +12,12 @@ SRC_PC = src/storage_manager.c       \
          lib/fatfs/ff.c              \
          src/main.c
 
-CFLAGS_ARM = -mcpu=cortex-a9 -marm   \
-             -DTARGET_HARDWARE        \
-             -Wall -O2                \
-             -ffreestanding           \
+CFLAGS_ARM = -mcpu=cortex-a9 -marm              \
+             -DTARGET_HARDWARE                   \
+             -Wall -O2                           \
+             -ffreestanding                      \
+             -mno-unaligned-access               \
+             -fno-tree-loop-distribute-patterns  \
              -Iinclude -Ilib
 
 SRC_ARM = src/startup.S              \
