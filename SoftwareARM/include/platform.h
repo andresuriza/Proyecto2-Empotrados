@@ -47,8 +47,10 @@
 #define REQ_PREV          2
 
 // ── VGA Text Controller ───────────────────────────────────
-// Offset correcto = 0x10000 -> 0xFF210000. Descomentar cuando se implementen metadatos.
-// #define VGA_BASE         (LW_BRIDGE_BASE + 0x10000UL) // 0xFF210000
+// Offset = 0x10000 -> 0xFF210000 (vga.avl en el LW bridge). Solo válido en hardware.
+#ifdef TARGET_HARDWARE
+#define VGA_BASE          (LW_BRIDGE_BASE + 0x10000UL) // 0xFF210000
+#endif
 #define VGA_COLS          80
 #define VGA_ROWS          30
 

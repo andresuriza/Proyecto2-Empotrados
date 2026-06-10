@@ -26,6 +26,7 @@ SRC_ARM = src/startup.S              \
           src/mailbox.c              \
           src/player.c               \
           src/syscalls.c             \
+          src/vga.c                  \
           src/bsp/hw/diskio_hw.c     \
           lib/fatfs/ff.c             \
           src/main.c

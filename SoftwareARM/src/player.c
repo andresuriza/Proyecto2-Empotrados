@@ -2,6 +2,9 @@
 #include "mailbox.h"
 #include "storage_manager.h"
 #include "wav_parser.h"
+#ifdef TARGET_HARDWARE
+#include "vga.h"
+#endif
 #include <stdio.h>
 #include <stdint.h>
 
@@ -35,6 +38,11 @@ static void open_track(int idx) {
     }
 
     wav_print_info(&wav_info);
+
+#ifdef TARGET_HARDWARE
+    // Mostrar metadatos en la pantalla VGA externa
+    vga_show_track(&wav_info, songs[idx].filename, idx + 1, total_tracks);
+#endif
 
     // Reabrir y saltar al inicio de los datos PCM
     if (storage_open_song(songs[idx].filename) != 0 ||
