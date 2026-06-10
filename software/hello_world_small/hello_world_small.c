@@ -5,6 +5,7 @@
 #include "sys/alt_irq.h"
 #include "altera_avalon_pio_regs.h"
 #include "altera_avalon_timer_regs.h"
+#include "filters.h"            // filtros de audio (seleccionados por SW[1:0])
 
 // --- Mailbox (debe coincidir con hw_test.c) ---
 #define IDX_CMD         0
@@ -26,9 +27,10 @@
 #define AUDIO_RIGHT     12  // byte offset 12: DAC right
 
 // --- Estado compartido ---
-static volatile uint32_t key_event = 0;
-static volatile uint32_t tick_ms   = 0;
-static volatile uint32_t sw_event  = 0;
+static volatile uint32_t key_event   = 0;
+static volatile uint32_t tick_ms     = 0;
+static volatile uint32_t sw_event    = 0;
+static          uint32_t filter_mode = FILTER_BYPASS;   // 0=bypass 1=low 2=high 3=band (SW[1:0])
 
 static const uint8_t seg7[16] = {
     0x40, 0x79, 0x24, 0x30, 0x19,
@@ -68,6 +70,14 @@ static void hex_show_time(uint32_t total_sec) {
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
 }
 
+// --- Leer SW[1:0] -> filter_mode y mostrar el filtro activo en HEX5 ---
+// HEX5: 0=bypass 1=lowpass 2=highpass 3=bandpass (HEX4 apagado). El diseño NO tiene
+// LEDs (sin PIO ni cableado en el top), por eso el indicador va en HEX5.
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
+}
+
 int main(void) {
     // --- Registrar IRQs ---
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
@@ -84,9 +94,9 @@ int main(void) {
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
     alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
 
-    // --- HEX en 00:00 al inicio ---
+    // --- HEX en 00:00 al inicio + filtro inicial en HEX5 ---
     hex_show_time(0);
-    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);  // HEX5..HEX4 apagados
+    set_filter();   // lee SW[1:0] y muestra el filtro activo en HEX5
 
     // --- Audio IP: esperar que el codec WM8731 termine de auto-inicializar (~500ms) ---
     for (volatile uint32_t d = 0; d < 2500000; d++) {}
@@ -119,7 +129,8 @@ int main(void) {
             if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
             if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
         }
-        if (sw_event) { sw_event = 0; }
+        // --- SW: cambio de filtro (actualiza filter_mode + indicador en HEX5) ---
+        if (sw_event) { sw_event = 0; set_filter(); }
 
         // --- Audio polling ---
         uint32_t cmd = sh[IDX_CMD];
@@ -157,6 +168,8 @@ int main(void) {
                     uint32_t packed = sh[BUF_WORD_START + tail];
                     int32_t left  = (int32_t)(int16_t)(packed >> 16);
                     int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
 
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);

@@ -84,6 +84,10 @@ ACDS_VERSION := 18.1
 # used to generate this makefile. 
 # BUILD_NUMBER: 625
 
+# Quartus Generated JDI File. Required for resolving node instance ID's with 
+# design component names. 
+JDI_FILE := $(ABS_BSP_ROOT_DIR)/../../Proyecto2.jdi
+
 # Qsys--generated SOPCINFO file. Required for resolving node instance ID's with 
 # design component names. 
 SOPCINFO_FILE := $(ABS_BSP_ROOT_DIR)/../../hps.sopcinfo

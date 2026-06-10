@@ -9,11 +9,11 @@ Program Header:
     LOAD off    0x00001000 vaddr 0x00020000 paddr 0x00020000 align 2**12
          filesz 0x00000020 memsz 0x00000020 flags r-x
     LOAD off    0x00001020 vaddr 0x00020020 paddr 0x00020020 align 2**12
-         filesz 0x00000a54 memsz 0x00000a54 flags r-x
-    LOAD off    0x00001a74 vaddr 0x00020a74 paddr 0x00020b4c align 2**12
+         filesz 0x00000bec memsz 0x00000bec flags r-x
+    LOAD off    0x00001c0c vaddr 0x00020c0c paddr 0x00020ce4 align 2**12
          filesz 0x000000d8 memsz 0x000000d8 flags rw-
-    LOAD off    0x00001c24 vaddr 0x00020c24 paddr 0x00020c24 align 2**12
-         filesz 0x00000000 memsz 0x00000124 flags rw-
+    LOAD off    0x00001dbc vaddr 0x00020dbc paddr 0x00020dbc align 2**12
+         filesz 0x00000000 memsz 0x00000148 flags rw-
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
@@ -21,67 +21,69 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
   1 .exceptions   00000160  00020020  00020020  00001020  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .text         000008a8  00020180  00020180  00001180  2**2
+  2 .text         00000a40  00020180  00020180  00001180  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  3 .rodata       0000004c  00020a28  00020a28  00001a28  2**2
+  3 .rodata       0000004c  00020bc0  00020bc0  00001bc0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  4 .rwdata       000000d8  00020a74  00020b4c  00001a74  2**2
+  4 .rwdata       000000d8  00020c0c  00020ce4  00001c0c  2**2
                   CONTENTS, ALLOC, LOAD, DATA, SMALL_DATA
-  5 .bss          00000124  00020c24  00020c24  00001c24  2**2
+  5 .bss          00000148  00020dbc  00020dbc  00001dbc  2**2
                   ALLOC, SMALL_DATA
-  6 .shared_mem   00000000  00000000  00000000  00001b4c  2**0
+  6 .shared_mem   00000000  00000000  00000000  00001ce4  2**0
                   CONTENTS
-  7 .onchip_mem   00000000  00020d48  00020d48  00001b4c  2**0
+  7 .onchip_mem   00000000  00020f04  00020f04  00001ce4  2**0
                   CONTENTS
-  8 .comment      00000023  00000000  00000000  00001b4c  2**0
+  8 .comment      00000023  00000000  00000000  00001ce4  2**0
                   CONTENTS, READONLY
-  9 .debug_aranges 00000288  00000000  00000000  00001b70  2**3
+  9 .debug_aranges 000002a8  00000000  00000000  00001d08  2**3
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_info   0000220b  00000000  00000000  00001df8  2**0
+ 10 .debug_info   000024a2  00000000  00000000  00001fb0  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_abbrev 00000df1  00000000  00000000  00004003  2**0
+ 11 .debug_abbrev 00000ed9  00000000  00000000  00004452  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_line   00000e51  00000000  00000000  00004df4  2**0
+ 12 .debug_line   00000fac  00000000  00000000  0000532b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_frame  000002bc  00000000  00000000  00005c48  2**2
+ 13 .debug_frame  000002ec  00000000  00000000  000062d8  2**2
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_str    000010b0  00000000  00000000  00005f04  2**0
+ 14 .debug_str    00001135  00000000  00000000  000065c4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_loc    00000b86  00000000  00000000  00006fb4  2**0
+ 15 .debug_loc    00000beb  00000000  00000000  000076f9  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_alt_sim_info 00000010  00000000  00000000  00007b3c  2**2
+ 16 .debug_alt_sim_info 00000010  00000000  00000000  000082e4  2**2
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_ranges 00000230  00000000  00000000  00007b50  2**3
+ 17 .debug_ranges 00000228  00000000  00000000  000082f8  2**3
                   CONTENTS, READONLY, DEBUGGING
- 18 .thread_model 00000003  00000000  00000000  00008f71  2**0
+ 18 .thread_model 00000003  00000000  00000000  00009852  2**0
                   CONTENTS, READONLY
- 19 .cpu          00000003  00000000  00000000  00008f74  2**0
+ 19 .cpu          00000003  00000000  00000000  00009855  2**0
                   CONTENTS, READONLY
- 20 .qsys         00000001  00000000  00000000  00008f77  2**0
+ 20 .qsys         00000001  00000000  00000000  00009858  2**0
                   CONTENTS, READONLY
- 21 .simulation_enabled 00000001  00000000  00000000  00008f78  2**0
+ 21 .simulation_enabled 00000001  00000000  00000000  00009859  2**0
                   CONTENTS, READONLY
- 22 .stderr_dev   00000009  00000000  00000000  00008f79  2**0
+ 22 .stderr_dev   00000009  00000000  00000000  0000985a  2**0
                   CONTENTS, READONLY
- 23 .stdin_dev    00000009  00000000  00000000  00008f82  2**0
+ 23 .stdin_dev    00000009  00000000  00000000  00009863  2**0
                   CONTENTS, READONLY
- 24 .stdout_dev   00000009  00000000  00000000  00008f8b  2**0
+ 24 .stdout_dev   00000009  00000000  00000000  0000986c  2**0
                   CONTENTS, READONLY
- 25 .sopc_system_name 00000003  00000000  00000000  00008f94  2**0
+ 25 .sopc_system_name 00000003  00000000  00000000  00009875  2**0
                   CONTENTS, READONLY
- 26 .quartus_project_dir 00000041  00000000  00000000  00008f97  2**0
+ 26 .quartus_project_dir 00000041  00000000  00000000  00009878  2**0
                   CONTENTS, READONLY
- 27 .sopcinfo     002c0c57  00000000  00000000  00008fd8  2**0
+ 27 .jdi          00004138  00000000  00000000  000098b9  2**0
+                  CONTENTS, READONLY
+ 28 .sopcinfo     002c0c57  00000000  00000000  0000d9f1  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 00020000 l    d  .entry	00000000 .entry
 00020020 l    d  .exceptions	00000000 .exceptions
 00020180 l    d  .text	00000000 .text
-00020a28 l    d  .rodata	00000000 .rodata
-00020a74 l    d  .rwdata	00000000 .rwdata
-00020c24 l    d  .bss	00000000 .bss
+00020bc0 l    d  .rodata	00000000 .rodata
+00020c0c l    d  .rwdata	00000000 .rwdata
+00020dbc l    d  .bss	00000000 .bss
 00000000 l    d  .shared_mem	00000000 .shared_mem
-00020d48 l    d  .onchip_mem	00000000 .onchip_mem
+00020f04 l    d  .onchip_mem	00000000 .onchip_mem
 00000000 l    d  .comment	00000000 .comment
 00000000 l    d  .debug_aranges	00000000 .debug_aranges
 00000000 l    d  .debug_info	00000000 .debug_info
@@ -96,87 +98,99 @@ SYMBOL TABLE:
 000201b8 l       .text	00000000 alt_after_alt_main
 00000000 l    df *ABS*	00000000 alt_irq_handler.c
 00000000 l    df *ABS*	00000000 alt_instruction_exception_entry.c
+00000000 l    df *ABS*	00000000 filters.c
+00020dd8 l     O .bss	00000004 lp_l
+00020dd4 l     O .bss	00000004 lp_r
+00020dd0 l     O .bss	00000004 hp_lp_l
+00020dcc l     O .bss	00000004 hp_lp_r
+00020dc8 l     O .bss	00000004 bp1_l
+00020dc4 l     O .bss	00000004 bp1_r
+00020dbc l     O .bss	00000004 bp2_r
+00020dc0 l     O .bss	00000004 bp2_l
 00000000 l    df *ABS*	00000000 hello_world_small.c
-000201bc l     F .text	0000001c timer_isr
-00020c28 l     O .bss	00000004 tick_ms
-000201d8 l     F .text	000000dc hex_show_time
-00020a28 l     O .rodata	00000010 seg7
-000202b4 l     F .text	0000001c sw_isr
-00020c24 l     O .bss	00000004 sw_event
-000202d0 l     F .text	0000001c key_isr
-00020c2c l     O .bss	00000004 key_event
+000202f0 l     F .text	0000001c timer_isr
+00020de4 l     O .bss	00000004 tick_ms
+0002030c l     F .text	000000dc hex_show_time
+00020bc0 l     O .rodata	00000010 seg7
+000203e8 l     F .text	0000001c sw_isr
+00020de0 l     O .bss	00000004 sw_event
+00020404 l     F .text	0000001c key_isr
+00020de8 l     O .bss	00000004 key_event
+00020420 l     F .text	0000003c set_filter
+00020ddc l     O .bss	00000004 filter_mode
 00000000 l    df *ABS*	00000000 lib2-divmod.c
 00000000 l    df *ABS*	00000000 alt_irq_register.c
 00000000 l    df *ABS*	00000000 alt_irq_vars.c
 00000000 l    df *ABS*	00000000 alt_load.c
 00000000 l    df *ABS*	00000000 alt_main.c
 00000000 l    df *ABS*	00000000 alt_sys_init.c
-00020aa4 l     O .rwdata	00000030 audio_and_video_config_0
-00020a74 l     O .rwdata	00000030 audio_0
+00020c3c l     O .rwdata	00000030 audio_and_video_config_0
+00020c0c l     O .rwdata	00000030 audio_0
 00000000 l    df *ABS*	00000000 alt_dcache_flush_all.c
 00000000 l    df *ABS*	00000000 alt_dev.c
-00020934 l     F .text	00000008 alt_dev_null_write
+00020acc l     F .text	00000008 alt_dev_null_write
 00000000 l    df *ABS*	00000000 alt_dev_llist_insert.c
 00000000 l    df *ABS*	00000000 alt_errno.c
 00000000 l    df *ABS*	00000000 alt_icache_flush_all.c
 00000000 l    df *ABS*	00000000 altera_nios2_gen2_irq.c
 00000000 l    df *ABS*	00000000 int_errno.c
-00020c40 g     O .bss	00000004 alt_instruction_exception_handler
-000208a8 g     F .text	0000002c alt_main
-00020c48 g     O .bss	00000100 alt_irq
-00020b4c g       *ABS*	00000000 __flash_rwdata_start
-00020b30 g     O .rwdata	00000004 jtag_uart
-000209ac g     F .text	00000008 altera_nios2_gen2_irq_init
+00020dfc g     O .bss	00000004 alt_instruction_exception_handler
+00020a40 g     F .text	0000002c alt_main
+00020e04 g     O .bss	00000100 alt_irq
+00020ce4 g       *ABS*	00000000 __flash_rwdata_start
+00020cc8 g     O .rwdata	00000004 jtag_uart
+00020b44 g     F .text	00000008 altera_nios2_gen2_irq_init
 00020000 g     F .entry	0000000c __reset
 00020020 g       *ABS*	00000000 __flash_exceptions_start
-00020c44 g     O .bss	00000004 errno
-00020c38 g     O .bss	00000004 alt_argv
-00028b2c g       *ABS*	00000000 _gp
-00020ad4 g     O .rwdata	00000030 alt_fd_list
-000209b4 g     F .text	00000074 alt_exception_cause_generated_bad_addr
-00020678 g     F .text	00000064 .hidden __udivsi3
-00020b34 g     O .rwdata	00000004 alt_max_fd
-00020734 g     F .text	00000094 alt_irq_register
-00020d48 g       *ABS*	00000000 __bss_end
-00020c30 g     O .bss	00000004 alt_irq_active
+00020e00 g     O .bss	00000004 errno
+00020df4 g     O .bss	00000004 alt_argv
+00028cc4 g       *ABS*	00000000 _gp
+00020c6c g     O .rwdata	00000030 alt_fd_list
+00020b4c g     F .text	00000074 alt_exception_cause_generated_bad_addr
+00020810 g     F .text	00000064 .hidden __udivsi3
+00020ccc g     O .rwdata	00000004 alt_max_fd
+000208cc g     F .text	00000094 alt_irq_register
+00020f04 g       *ABS*	00000000 __bss_end
+00020dec g     O .bss	00000004 alt_irq_active
 00020000 g       *ABS*	00000000 __alt_mem_onchip_mem
 000200fc g     F .exceptions	00000060 alt_irq_handler
-00020b04 g     O .rwdata	00000028 alt_dev_null
-00020930 g     F .text	00000004 alt_dcache_flush_all
-00020b4c g       *ABS*	00000000 __ram_rwdata_end
-00020b38 g     O .rwdata	00000008 alt_dev_list
-00020a74 g       *ABS*	00000000 __ram_rodata_end
-000206dc g     F .text	00000058 .hidden __umodsi3
-00020d48 g       *ABS*	00000000 end
+00020c9c g     O .rwdata	00000028 alt_dev_null
+00020ac8 g     F .text	00000004 alt_dcache_flush_all
+00020ce4 g       *ABS*	00000000 __ram_rwdata_end
+00020cd0 g     O .rwdata	00000008 alt_dev_list
+00020c0c g       *ABS*	00000000 __ram_rodata_end
+00020874 g     F .text	00000058 .hidden __umodsi3
+00020f04 g       *ABS*	00000000 end
 0002015c g     F .exceptions	00000024 alt_instruction_exception_entry
 00030000 g       *ABS*	00000000 __alt_stack_pointer
 00020180 g     F .text	0000003c _start
-000208f4 g     F .text	0000003c alt_sys_init
-00020a74 g       *ABS*	00000000 __ram_rwdata_start
-00020a28 g       *ABS*	00000000 __ram_rodata_start
-00020d48 g       *ABS*	00000000 __alt_stack_base
-0002093c g     F .text	0000006c alt_dev_llist_insert
-00020c24 g       *ABS*	00000000 __bss_start
-000202ec g     F .text	00000294 main
-00020c34 g     O .bss	00000004 alt_envp
-00020b48 g     O .rwdata	00000004 alt_errno
-00020580 g     F .text	00000084 .hidden __divsi3
-00020a28 g       *ABS*	00000000 __flash_rodata_start
-000208d4 g     F .text	00000020 alt_irq_init
-00020c3c g     O .bss	00000004 alt_argc
+00020a8c g     F .text	0000003c alt_sys_init
+00020c0c g       *ABS*	00000000 __ram_rwdata_start
+00020bc0 g       *ABS*	00000000 __ram_rodata_start
+00020f04 g       *ABS*	00000000 __alt_stack_base
+00020ad4 g     F .text	0000006c alt_dev_llist_insert
+00020dbc g       *ABS*	00000000 __bss_start
+0002045c g     F .text	000002bc main
+00020df0 g     O .bss	00000004 alt_envp
+00020ce0 g     O .rwdata	00000004 alt_errno
+00020718 g     F .text	00000084 .hidden __divsi3
+00020bc0 g       *ABS*	00000000 __flash_rodata_start
+00020a6c g     F .text	00000020 alt_irq_init
+00020df8 g     O .bss	00000004 alt_argc
 00020020 g       .exceptions	00000000 alt_irq_entry
-00020b40 g     O .rwdata	00000008 alt_fs_list
+00020cd8 g     O .rwdata	00000008 alt_fs_list
 00020020 g       *ABS*	00000000 __ram_exceptions_start
-00020b4c g       *ABS*	00000000 _edata
-00020d48 g       *ABS*	00000000 _end
+00020ce4 g       *ABS*	00000000 _edata
+00020f04 g       *ABS*	00000000 _end
 00020180 g       *ABS*	00000000 __ram_exceptions_end
-00020604 g     F .text	00000074 .hidden __modsi3
+0002079c g     F .text	00000074 .hidden __modsi3
 00030000 g       *ABS*	00000000 __alt_data_end
 00020020 g     F .exceptions	00000000 alt_exception
+000201bc g     F .text	00000134 apply_filter
 0002000c g       .entry	00000000 _exit
-000209a8 g     F .text	00000004 alt_icache_flush_all
-00020b2c g     O .rwdata	00000004 alt_priority_mask
-000207c8 g     F .text	000000e0 alt_load
+00020b40 g     F .text	00000004 alt_icache_flush_all
+00020cc4 g     O .rwdata	00000004 alt_priority_mask
+00020960 g     F .text	000000e0 alt_load
 00000000 g       *ABS*	00000000 __alt_mem_shared_mem
 
 
@@ -414,7 +428,7 @@ static ALT_INLINE alt_u32 ALT_ALWAYS_INLINE alt_irq_pending (void)
 #else
         alt_irq[i].handler(alt_irq[i].context, i); 
    2010c:	040000b4 	movhi	r16,2
-   20110:	84031204 	addi	r16,r16,3144
+   20110:	84038104 	addi	r16,r16,3588
 
   active = alt_irq_pending ();
 
@@ -480,7 +494,7 @@ static ALT_INLINE alt_u32 ALT_ALWAYS_INLINE alt_irq_pending (void)
 #endif /* NIOS2_HAS_EXTRA_EXCEPTION_INFO */
 
   if(alt_instruction_exception_handler) {
-   2015c:	d0a04517 	ldw	r2,-32492(gp)
+   2015c:	d0a04e17 	ldw	r2,-32456(gp)
    20160:	10000426 	beq	r2,zero,20174 <alt_instruction_exception_entry+0x18>
      * Call handler. Its return value indicates whether the exception-causing
      * instruction should be re-issued. The code that called us,
@@ -523,7 +537,7 @@ Disassembly of section .text:
     movhi gp, %hi(_gp)
    20188:	068000b4 	movhi	gp,2
     ori gp, gp, %lo(_gp)
-   2018c:	d6a2cb14 	ori	gp,gp,35628
+   2018c:	d6a33114 	ori	gp,gp,36036
  */
 #ifndef ALT_SIM_OPTIMIZE
     /* Log that the BSS is about to be cleared. */
@@ -532,12 +546,12 @@ Disassembly of section .text:
     movhi r2, %hi(__bss_start)
    20190:	008000b4 	movhi	r2,2
     ori r2, r2, %lo(__bss_start)
-   20194:	10830914 	ori	r2,r2,3108
+   20194:	10836f14 	ori	r2,r2,3516
 
     movhi r3, %hi(__bss_end)
    20198:	00c000b4 	movhi	r3,2
     ori r3, r3, %lo(__bss_end)
-   2019c:	18c35214 	ori	r3,r3,3400
+   2019c:	18c3c114 	ori	r3,r3,3844
 
     beq r2, r3, 1f
    201a0:	10c00326 	beq	r2,r3,201b0 <_start+0x30>
@@ -555,14 +569,14 @@ Disassembly of section .text:
 #endif
 
     call alt_load
-   201b0:	00207c80 	call	207c8 <alt_load>
+   201b0:	00209600 	call	20960 <alt_load>
 
     /* Log that alt_main is about to be called. */
     ALT_LOG_PUTS(alt_log_msg_alt_main)
 
     /* Call the C entry point. It should never return. */
     call alt_main
-   201b4:	00208a80 	call	208a8 <alt_main>
+   201b4:	0020a400 	call	20a40 <alt_main>
 
 000201b8 <alt_after_alt_main>:
 
@@ -571,1229 +585,1468 @@ alt_after_alt_main:
     br alt_after_alt_main
    201b8:	003fff06 	br	201b8 <__alt_data_end+0xffff01b8>
 
-000201bc <timer_isr>:
+000201bc <apply_filter>:
+
+// ══════════════════════════════════════════════════════════
+// FUNCIÓN PÚBLICA
+// ══════════════════════════════════════════════════════════
+void apply_filter(int32_t *left, int32_t *right, uint32_t mode) {
+    switch (mode) {
+   201bc:	00c00084 	movi	r3,2
+   201c0:	20800017 	ldw	r2,0(r4)
+   201c4:	30c01126 	beq	r6,r3,2020c <apply_filter+0x50>
+   201c8:	00c000c4 	movi	r3,3
+   201cc:	30c01f26 	beq	r6,r3,2024c <apply_filter+0x90>
+   201d0:	00c00044 	movi	r3,1
+   201d4:	30c0361e 	bne	r6,r3,202b0 <apply_filter+0xf4>
+// ── FILTRO 1: Pasa-bajos (un polo, ~950Hz) ──
+// Quita agudos -> sonido grave/cálido. SW[1:0]=01
+static int32_t lp_l = 0, lp_r = 0;
+
+static void filter_lowpass(int32_t *left, int32_t *right) {
+    lp_l += (*left  - lp_l) >> 3;
+   201d8:	d0e04517 	ldw	r3,-32492(gp)
+    lp_r += (*right - lp_r) >> 3;
+   201dc:	d1a04417 	ldw	r6,-32496(gp)
+// ── FILTRO 1: Pasa-bajos (un polo, ~950Hz) ──
+// Quita agudos -> sonido grave/cálido. SW[1:0]=01
+static int32_t lp_l = 0, lp_r = 0;
+
+static void filter_lowpass(int32_t *left, int32_t *right) {
+    lp_l += (*left  - lp_l) >> 3;
+   201e0:	10c5c83a 	sub	r2,r2,r3
+   201e4:	1005d0fa 	srai	r2,r2,3
+   201e8:	10c5883a 	add	r2,r2,r3
+    lp_r += (*right - lp_r) >> 3;
+   201ec:	28c00017 	ldw	r3,0(r5)
+// ── FILTRO 1: Pasa-bajos (un polo, ~950Hz) ──
+// Quita agudos -> sonido grave/cálido. SW[1:0]=01
+static int32_t lp_l = 0, lp_r = 0;
+
+static void filter_lowpass(int32_t *left, int32_t *right) {
+    lp_l += (*left  - lp_l) >> 3;
+   201f0:	d0a04515 	stw	r2,-32492(gp)
+    lp_r += (*right - lp_r) >> 3;
+    *left  = lp_l;
+   201f4:	20800015 	stw	r2,0(r4)
+// Quita agudos -> sonido grave/cálido. SW[1:0]=01
+static int32_t lp_l = 0, lp_r = 0;
+
+static void filter_lowpass(int32_t *left, int32_t *right) {
+    lp_l += (*left  - lp_l) >> 3;
+    lp_r += (*right - lp_r) >> 3;
+   201f8:	1987c83a 	sub	r3,r3,r6
+   201fc:	1807d0fa 	srai	r3,r3,3
+   20200:	1987883a 	add	r3,r3,r6
+   20204:	d0e04415 	stw	r3,-32496(gp)
+   20208:	00002806 	br	202ac <apply_filter+0xf0>
+// highpass = x - lowpass(x) (lo que el pasa-bajos deja afuera = los agudos).
+// Sonido brillante/fino. SW[1:0]=10
+static int32_t hp_lp_l = 0, hp_lp_r = 0;
+
+static void filter_highpass(int32_t *left, int32_t *right) {
+    hp_lp_l += (*left  - hp_lp_l) >> 3;
+   2020c:	d0e04317 	ldw	r3,-32500(gp)
+    hp_lp_r += (*right - hp_lp_r) >> 3;
+   20210:	d1a04217 	ldw	r6,-32504(gp)
+// highpass = x - lowpass(x) (lo que el pasa-bajos deja afuera = los agudos).
+// Sonido brillante/fino. SW[1:0]=10
+static int32_t hp_lp_l = 0, hp_lp_r = 0;
+
+static void filter_highpass(int32_t *left, int32_t *right) {
+    hp_lp_l += (*left  - hp_lp_l) >> 3;
+   20214:	10cfc83a 	sub	r7,r2,r3
+   20218:	380fd0fa 	srai	r7,r7,3
+   2021c:	38cf883a 	add	r7,r7,r3
+    hp_lp_r += (*right - hp_lp_r) >> 3;
+   20220:	28c00017 	ldw	r3,0(r5)
+    *left  = *left  - hp_lp_l;
+   20224:	11c5c83a 	sub	r2,r2,r7
+   20228:	20800015 	stw	r2,0(r4)
+// Sonido brillante/fino. SW[1:0]=10
+static int32_t hp_lp_l = 0, hp_lp_r = 0;
+
+static void filter_highpass(int32_t *left, int32_t *right) {
+    hp_lp_l += (*left  - hp_lp_l) >> 3;
+    hp_lp_r += (*right - hp_lp_r) >> 3;
+   2022c:	1987c83a 	sub	r3,r3,r6
+   20230:	1807d0fa 	srai	r3,r3,3
+    *left  = *left  - hp_lp_l;
+    *right = *right - hp_lp_r;
+   20234:	28800017 	ldw	r2,0(r5)
+// highpass = x - lowpass(x) (lo que el pasa-bajos deja afuera = los agudos).
+// Sonido brillante/fino. SW[1:0]=10
+static int32_t hp_lp_l = 0, hp_lp_r = 0;
+
+static void filter_highpass(int32_t *left, int32_t *right) {
+    hp_lp_l += (*left  - hp_lp_l) >> 3;
+   20238:	d1e04315 	stw	r7,-32500(gp)
+    hp_lp_r += (*right - hp_lp_r) >> 3;
+   2023c:	1987883a 	add	r3,r3,r6
+   20240:	d0e04215 	stw	r3,-32504(gp)
+    *left  = *left  - hp_lp_l;
+    *right = *right - hp_lp_r;
+   20244:	10c7c83a 	sub	r3,r2,r3
+   20248:	00001806 	br	202ac <apply_filter+0xf0>
+// = queda la banda media. Efecto voz/telefono. SW[1:0]=11
+static int32_t bp1_l = 0, bp1_r = 0;   // lowpass corte alto
+static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
+
+static void filter_bandpass(int32_t *left, int32_t *right) {
+    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
+   2024c:	d0e04117 	ldw	r3,-32508(gp)
+    bp1_r += (*right - bp1_r) >> 2;
+   20250:	d1a04017 	ldw	r6,-32512(gp)
+    bp2_l += (bp1_l  - bp2_l) >> 5;     // ~240Hz
+    bp2_r += (bp1_r  - bp2_r) >> 5;
+   20254:	d1e03e17 	ldw	r7,-32520(gp)
+// = queda la banda media. Efecto voz/telefono. SW[1:0]=11
+static int32_t bp1_l = 0, bp1_r = 0;   // lowpass corte alto
+static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
+
+static void filter_bandpass(int32_t *left, int32_t *right) {
+    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
+   20258:	10c5c83a 	sub	r2,r2,r3
+   2025c:	1005d0ba 	srai	r2,r2,2
+   20260:	10c5883a 	add	r2,r2,r3
+    bp1_r += (*right - bp1_r) >> 2;
+   20264:	28c00017 	ldw	r3,0(r5)
+// = queda la banda media. Efecto voz/telefono. SW[1:0]=11
+static int32_t bp1_l = 0, bp1_r = 0;   // lowpass corte alto
+static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
+
+static void filter_bandpass(int32_t *left, int32_t *right) {
+    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
+   20268:	d0a04115 	stw	r2,-32508(gp)
+    bp1_r += (*right - bp1_r) >> 2;
+   2026c:	1987c83a 	sub	r3,r3,r6
+   20270:	1807d0ba 	srai	r3,r3,2
+   20274:	1987883a 	add	r3,r3,r6
+    bp2_l += (bp1_l  - bp2_l) >> 5;     // ~240Hz
+   20278:	d1a03f17 	ldw	r6,-32516(gp)
+static int32_t bp1_l = 0, bp1_r = 0;   // lowpass corte alto
+static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
+
+static void filter_bandpass(int32_t *left, int32_t *right) {
+    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
+    bp1_r += (*right - bp1_r) >> 2;
+   2027c:	d0e04015 	stw	r3,-32512(gp)
+    bp2_l += (bp1_l  - bp2_l) >> 5;     // ~240Hz
+   20280:	1191c83a 	sub	r8,r2,r6
+   20284:	4011d17a 	srai	r8,r8,5
+   20288:	4191883a 	add	r8,r8,r6
+    bp2_r += (bp1_r  - bp2_r) >> 5;
+   2028c:	19cdc83a 	sub	r6,r3,r7
+   20290:	300dd17a 	srai	r6,r6,5
+    *left  = bp1_l - bp2_l;
+   20294:	1205c83a 	sub	r2,r2,r8
+static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
+
+static void filter_bandpass(int32_t *left, int32_t *right) {
+    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
+    bp1_r += (*right - bp1_r) >> 2;
+    bp2_l += (bp1_l  - bp2_l) >> 5;     // ~240Hz
+   20298:	d2203f15 	stw	r8,-32516(gp)
+    bp2_r += (bp1_r  - bp2_r) >> 5;
+   2029c:	31cd883a 	add	r6,r6,r7
+   202a0:	d1a03e15 	stw	r6,-32520(gp)
+    *left  = bp1_l - bp2_l;
+   202a4:	20800015 	stw	r2,0(r4)
+    *right = bp1_r - bp2_r;
+   202a8:	1987c83a 	sub	r3,r3,r6
+   202ac:	28c00015 	stw	r3,0(r5)
+        case FILTER_HIGHPASS: filter_highpass(left, right); break;
+        case FILTER_BANDPASS: filter_bandpass(left, right); break;
+        default: break;  // BYPASS
+    }
+    // Saturacion de seguridad (highpass/bandpass pueden pasarse un poco en transientes).
+    if      (*left  >  32767) *left  =  32767;
+   202b0:	21800017 	ldw	r6,0(r4)
+   202b4:	009fffc4 	movi	r2,32767
+   202b8:	1180020e 	bge	r2,r6,202c4 <apply_filter+0x108>
+   202bc:	20800015 	stw	r2,0(r4)
+   202c0:	00000306 	br	202d0 <apply_filter+0x114>
+    else if (*left  < -32768) *left  = -32768;
+   202c4:	00e00004 	movi	r3,-32768
+   202c8:	30c0010e 	bge	r6,r3,202d0 <apply_filter+0x114>
+   202cc:	20c00015 	stw	r3,0(r4)
+    if      (*right >  32767) *right =  32767;
+   202d0:	28c00017 	ldw	r3,0(r5)
+   202d4:	10c0020e 	bge	r2,r3,202e0 <apply_filter+0x124>
+   202d8:	009fffc4 	movi	r2,32767
+   202dc:	00000206 	br	202e8 <apply_filter+0x12c>
+    else if (*right < -32768) *right = -32768;
+   202e0:	00a00004 	movi	r2,-32768
+   202e4:	1880010e 	bge	r3,r2,202ec <apply_filter+0x130>
+   202e8:	28800015 	stw	r2,0(r5)
+   202ec:	f800283a 	ret
+
+000202f0 <timer_isr>:
     sw_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE);
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE, 0x7);
 }
 
 static void timer_isr(void *ctx, alt_u32 id) {
     IOWR_ALTERA_AVALON_TIMER_STATUS(SYS_TIMER_BASE, 0);
-   201bc:	008000f4 	movhi	r2,3
-   201c0:	10840004 	addi	r2,r2,4096
-   201c4:	10000035 	stwio	zero,0(r2)
+   202f0:	008000f4 	movhi	r2,3
+   202f4:	10840004 	addi	r2,r2,4096
+   202f8:	10000035 	stwio	zero,0(r2)
     tick_ms++;
-   201c8:	d0a03f17 	ldw	r2,-32516(gp)
-   201cc:	10800044 	addi	r2,r2,1
-   201d0:	d0a03f15 	stw	r2,-32516(gp)
-   201d4:	f800283a 	ret
+   202fc:	d0a04817 	ldw	r2,-32480(gp)
+   20300:	10800044 	addi	r2,r2,1
+   20304:	d0a04815 	stw	r2,-32480(gp)
+   20308:	f800283a 	ret
 
-000201d8 <hex_show_time>:
+0002030c <hex_show_time>:
 }
 
 // --- Mostrar MM:SS en HEX3..HEX0 (escritura directa, NO bloquea como printf) ---
 // Layout pio_hex_lo: [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
 static void hex_show_time(uint32_t total_sec) {
-   201d8:	defffb04 	addi	sp,sp,-20
+   2030c:	defffb04 	addi	sp,sp,-20
     uint32_t mm = (total_sec / 60) % 100;   // tope 99 min
-   201dc:	01400f04 	movi	r5,60
+   20310:	01400f04 	movi	r5,60
     tick_ms++;
 }
 
 // --- Mostrar MM:SS en HEX3..HEX0 (escritura directa, NO bloquea como printf) ---
 // Layout pio_hex_lo: [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
 static void hex_show_time(uint32_t total_sec) {
-   201e0:	dfc00415 	stw	ra,16(sp)
-   201e4:	dcc00315 	stw	r19,12(sp)
-   201e8:	dc800215 	stw	r18,8(sp)
-   201ec:	dc400115 	stw	r17,4(sp)
-   201f0:	dc000015 	stw	r16,0(sp)
-   201f4:	2021883a 	mov	r16,r4
+   20314:	dfc00415 	stw	ra,16(sp)
+   20318:	dcc00315 	stw	r19,12(sp)
+   2031c:	dc800215 	stw	r18,8(sp)
+   20320:	dc400115 	stw	r17,4(sp)
+   20324:	dc000015 	stw	r16,0(sp)
+   20328:	2021883a 	mov	r16,r4
     uint32_t mm = (total_sec / 60) % 100;   // tope 99 min
-   201f8:	00206780 	call	20678 <__udivsi3>
-   201fc:	01401904 	movi	r5,100
-   20200:	1009883a 	mov	r4,r2
-   20204:	00206dc0 	call	206dc <__umodsi3>
+   2032c:	00208100 	call	20810 <__udivsi3>
+   20330:	01401904 	movi	r5,100
+   20334:	1009883a 	mov	r4,r2
+   20338:	00208740 	call	20874 <__umodsi3>
     uint32_t ss = total_sec % 60;
-   20208:	8009883a 	mov	r4,r16
-   2020c:	01400f04 	movi	r5,60
+   2033c:	8009883a 	mov	r4,r16
+   20340:	01400f04 	movi	r5,60
 }
 
 // --- Mostrar MM:SS en HEX3..HEX0 (escritura directa, NO bloquea como printf) ---
 // Layout pio_hex_lo: [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
 static void hex_show_time(uint32_t total_sec) {
     uint32_t mm = (total_sec / 60) % 100;   // tope 99 min
-   20210:	1025883a 	mov	r18,r2
+   20344:	1025883a 	mov	r18,r2
     uint32_t ss = total_sec % 60;
-   20214:	00206dc0 	call	206dc <__umodsi3>
+   20348:	00208740 	call	20874 <__umodsi3>
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
                   ((uint32_t)seg7[d2] << 14) |
                   ((uint32_t)seg7[d1] <<  7) |
-   20218:	01400284 	movi	r5,10
-   2021c:	1009883a 	mov	r4,r2
-   20220:	040000b4 	movhi	r16,2
-   20224:	84028a04 	addi	r16,r16,2600
+   2034c:	01400284 	movi	r5,10
+   20350:	1009883a 	mov	r4,r2
+   20354:	040000b4 	movhi	r16,2
+   20358:	8402f004 	addi	r16,r16,3008
 
 // --- Mostrar MM:SS en HEX3..HEX0 (escritura directa, NO bloquea como printf) ---
 // Layout pio_hex_lo: [27:21]=HEX3 [20:14]=HEX2 [13:7]=HEX1 [6:0]=HEX0
 static void hex_show_time(uint32_t total_sec) {
     uint32_t mm = (total_sec / 60) % 100;   // tope 99 min
     uint32_t ss = total_sec % 60;
-   20228:	1027883a 	mov	r19,r2
+   2035c:	1027883a 	mov	r19,r2
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
                   ((uint32_t)seg7[d2] << 14) |
                   ((uint32_t)seg7[d1] <<  7) |
-   2022c:	00206780 	call	20678 <__udivsi3>
-   20230:	8085883a 	add	r2,r16,r2
+   20360:	00208100 	call	20810 <__udivsi3>
+   20364:	8085883a 	add	r2,r16,r2
                    (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20234:	14400003 	ldbu	r17,0(r2)
+   20368:	14400003 	ldbu	r17,0(r2)
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
                   ((uint32_t)seg7[d2] << 14) |
                   ((uint32_t)seg7[d1] <<  7) |
                    (uint32_t)seg7[d0];
-   20238:	9809883a 	mov	r4,r19
-   2023c:	01400284 	movi	r5,10
-   20240:	00206dc0 	call	206dc <__umodsi3>
-   20244:	8085883a 	add	r2,r16,r2
+   2036c:	9809883a 	mov	r4,r19
+   20370:	01400284 	movi	r5,10
+   20374:	00208740 	call	20874 <__umodsi3>
+   20378:	8085883a 	add	r2,r16,r2
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20248:	10800003 	ldbu	r2,0(r2)
-   2024c:	882291fa 	slli	r17,r17,7
+   2037c:	10800003 	ldbu	r2,0(r2)
+   20380:	882291fa 	slli	r17,r17,7
     uint32_t ss = total_sec % 60;
     uint32_t d3 = (mm / 10) % 10;           // decenas de minuto
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
-   20250:	9009883a 	mov	r4,r18
-   20254:	01400284 	movi	r5,10
+   20384:	9009883a 	mov	r4,r18
+   20388:	01400284 	movi	r5,10
                   ((uint32_t)seg7[d2] << 14) |
                   ((uint32_t)seg7[d1] <<  7) |
                    (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20258:	88a2b03a 	or	r17,r17,r2
+   2038c:	88a2b03a 	or	r17,r17,r2
     uint32_t ss = total_sec % 60;
     uint32_t d3 = (mm / 10) % 10;           // decenas de minuto
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
-   2025c:	00206780 	call	20678 <__udivsi3>
-   20260:	8085883a 	add	r2,r16,r2
+   20390:	00208100 	call	20810 <__udivsi3>
+   20394:	8085883a 	add	r2,r16,r2
                   ((uint32_t)seg7[d2] << 14) |
                   ((uint32_t)seg7[d1] <<  7) |
                    (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20264:	10800003 	ldbu	r2,0(r2)
+   20398:	10800003 	ldbu	r2,0(r2)
     uint32_t d3 = (mm / 10) % 10;           // decenas de minuto
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
                   ((uint32_t)seg7[d2] << 14) |
-   20268:	01400284 	movi	r5,10
-   2026c:	9009883a 	mov	r4,r18
+   2039c:	01400284 	movi	r5,10
+   203a0:	9009883a 	mov	r4,r18
                   ((uint32_t)seg7[d1] <<  7) |
                    (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20270:	1004957a 	slli	r2,r2,21
-   20274:	88a2b03a 	or	r17,r17,r2
+   203a4:	1004957a 	slli	r2,r2,21
+   203a8:	88a2b03a 	or	r17,r17,r2
     uint32_t d3 = (mm / 10) % 10;           // decenas de minuto
     uint32_t d2 =  mm % 10;                 // unidades de minuto
     uint32_t d1 =  ss / 10;                 // decenas de segundo
     uint32_t d0 =  ss % 10;                 // unidades de segundo
     uint32_t lo = ((uint32_t)seg7[d3] << 21) |
                   ((uint32_t)seg7[d2] << 14) |
-   20278:	00206dc0 	call	206dc <__umodsi3>
-   2027c:	8085883a 	add	r2,r16,r2
+   203ac:	00208740 	call	20874 <__umodsi3>
+   203b0:	8085883a 	add	r2,r16,r2
                   ((uint32_t)seg7[d1] <<  7) |
                    (uint32_t)seg7[d0];
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
-   20280:	10800003 	ldbu	r2,0(r2)
-   20284:	00c000f4 	movhi	r3,3
-   20288:	18c41404 	addi	r3,r3,4176
-   2028c:	100493ba 	slli	r2,r2,14
-   20290:	8884b03a 	or	r2,r17,r2
-   20294:	18800035 	stwio	r2,0(r3)
+   203b4:	10800003 	ldbu	r2,0(r2)
+   203b8:	00c000f4 	movhi	r3,3
+   203bc:	18c41404 	addi	r3,r3,4176
+   203c0:	100493ba 	slli	r2,r2,14
+   203c4:	8884b03a 	or	r2,r17,r2
+   203c8:	18800035 	stwio	r2,0(r3)
 }
-   20298:	dfc00417 	ldw	ra,16(sp)
-   2029c:	dcc00317 	ldw	r19,12(sp)
-   202a0:	dc800217 	ldw	r18,8(sp)
-   202a4:	dc400117 	ldw	r17,4(sp)
-   202a8:	dc000017 	ldw	r16,0(sp)
-   202ac:	dec00504 	addi	sp,sp,20
-   202b0:	f800283a 	ret
+   203cc:	dfc00417 	ldw	ra,16(sp)
+   203d0:	dcc00317 	ldw	r19,12(sp)
+   203d4:	dc800217 	ldw	r18,8(sp)
+   203d8:	dc400117 	ldw	r17,4(sp)
+   203dc:	dc000017 	ldw	r16,0(sp)
+   203e0:	dec00504 	addi	sp,sp,20
+   203e4:	f800283a 	ret
 
-000202b4 <sw_isr>:
+000203e8 <sw_isr>:
     key_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE);
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
 }
 
 static void sw_isr(void *ctx, alt_u32 id) {
     sw_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE);
-   202b4:	008000f4 	movhi	r2,3
-   202b8:	10841b04 	addi	r2,r2,4204
-   202bc:	10c00037 	ldwio	r3,0(r2)
-   202c0:	d0e03e15 	stw	r3,-32520(gp)
+   203e8:	008000f4 	movhi	r2,3
+   203ec:	10841b04 	addi	r2,r2,4204
+   203f0:	10c00037 	ldwio	r3,0(r2)
+   203f4:	d0e04715 	stw	r3,-32484(gp)
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE, 0x7);
-   202c4:	00c001c4 	movi	r3,7
-   202c8:	10c00035 	stwio	r3,0(r2)
-   202cc:	f800283a 	ret
+   203f8:	00c001c4 	movi	r3,7
+   203fc:	10c00035 	stwio	r3,0(r2)
+   20400:	f800283a 	ret
 
-000202d0 <key_isr>:
+00020404 <key_isr>:
     0x08, 0x03, 0x46, 0x21, 0x06, 0x0E
 };
 
 // --- ISRs ---
 static void key_isr(void *ctx, alt_u32 id) {
     key_event = IORD_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE);
-   202d0:	008000f4 	movhi	r2,3
-   202d4:	10841f04 	addi	r2,r2,4220
-   202d8:	10c00037 	ldwio	r3,0(r2)
-   202dc:	d0e04015 	stw	r3,-32512(gp)
+   20404:	008000f4 	movhi	r2,3
+   20408:	10841f04 	addi	r2,r2,4220
+   2040c:	10c00037 	ldwio	r3,0(r2)
+   20410:	d0e04915 	stw	r3,-32476(gp)
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
-   202e0:	00c003c4 	movi	r3,15
-   202e4:	10c00035 	stwio	r3,0(r2)
-   202e8:	f800283a 	ret
+   20414:	00c003c4 	movi	r3,15
+   20418:	10c00035 	stwio	r3,0(r2)
+   2041c:	f800283a 	ret
 
-000202ec <main>:
-                  ((uint32_t)seg7[d1] <<  7) |
-                   (uint32_t)seg7[d0];
-    IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
+00020420 <set_filter>:
+
+// --- Leer SW[1:0] -> filter_mode y mostrar el filtro activo en HEX5 ---
+// HEX5: 0=bypass 1=lowpass 2=highpass 3=bandpass (HEX4 apagado). El diseño NO tiene
+// LEDs (sin PIO ni cableado en el top), por eso el indicador va en HEX5.
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+   20420:	008000f4 	movhi	r2,3
+   20424:	10841804 	addi	r2,r2,4192
+   20428:	10800037 	ldwio	r2,0(r2)
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
+   2042c:	00c000b4 	movhi	r3,2
+
+// --- Leer SW[1:0] -> filter_mode y mostrar el filtro activo en HEX5 ---
+// HEX5: 0=bypass 1=lowpass 2=highpass 3=bandpass (HEX4 apagado). El diseño NO tiene
+// LEDs (sin PIO ni cableado en el top), por eso el indicador va en HEX5.
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+   20430:	108000cc 	andi	r2,r2,3
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
+   20434:	18c2f004 	addi	r3,r3,3008
+
+// --- Leer SW[1:0] -> filter_mode y mostrar el filtro activo en HEX5 ---
+// HEX5: 0=bypass 1=lowpass 2=highpass 3=bandpass (HEX4 apagado). El diseño NO tiene
+// LEDs (sin PIO ni cableado en el top), por eso el indicador va en HEX5.
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+   20438:	d0a04615 	stw	r2,-32488(gp)
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
+   2043c:	1885883a 	add	r2,r3,r2
+   20440:	10800003 	ldbu	r2,0(r2)
+   20444:	00c000f4 	movhi	r3,3
+   20448:	18c41004 	addi	r3,r3,4160
+   2044c:	100491fa 	slli	r2,r2,7
+   20450:	10801fd4 	ori	r2,r2,127
+   20454:	18800035 	stwio	r2,0(r3)
+   20458:	f800283a 	ret
+
+0002045c <main>:
 }
 
 int main(void) {
-   202ec:	defff404 	addi	sp,sp,-48
+   2045c:	defff204 	addi	sp,sp,-56
     // --- Registrar IRQs ---
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
-   202f0:	00c000f4 	movhi	r3,3
-                  ((uint32_t)seg7[d1] <<  7) |
-                   (uint32_t)seg7[d0];
-    IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
+   20460:	00c000f4 	movhi	r3,3
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
 }
 
 int main(void) {
-   202f4:	dfc00b15 	stw	ra,44(sp)
-   202f8:	df000a15 	stw	fp,40(sp)
-   202fc:	ddc00915 	stw	r23,36(sp)
-   20300:	dd800815 	stw	r22,32(sp)
-   20304:	dd400715 	stw	r21,28(sp)
-   20308:	dd000615 	stw	r20,24(sp)
-   2030c:	dcc00515 	stw	r19,20(sp)
-   20310:	dc800415 	stw	r18,16(sp)
-   20314:	dc400315 	stw	r17,12(sp)
-   20318:	dc000215 	stw	r16,8(sp)
+   20464:	dfc00d15 	stw	ra,52(sp)
+   20468:	df000c15 	stw	fp,48(sp)
+   2046c:	ddc00b15 	stw	r23,44(sp)
+   20470:	dd800a15 	stw	r22,40(sp)
+   20474:	dd400915 	stw	r21,36(sp)
+   20478:	dd000815 	stw	r20,32(sp)
+   2047c:	dcc00715 	stw	r19,28(sp)
+   20480:	dc800615 	stw	r18,24(sp)
+   20484:	dc400515 	stw	r17,20(sp)
+   20488:	dc000415 	stw	r16,16(sp)
     // --- Registrar IRQs ---
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
-   2031c:	008003c4 	movi	r2,15
-   20320:	18c41f04 	addi	r3,r3,4220
-   20324:	18800035 	stwio	r2,0(r3)
+   2048c:	008003c4 	movi	r2,15
+   20490:	18c41f04 	addi	r3,r3,4220
+   20494:	18800035 	stwio	r2,0(r3)
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_KEY_BASE, 0xF);
-   20328:	00c000f4 	movhi	r3,3
-   2032c:	18c41e04 	addi	r3,r3,4216
-   20330:	18800035 	stwio	r2,0(r3)
+   20498:	00c000f4 	movhi	r3,3
+   2049c:	18c41e04 	addi	r3,r3,4216
+   204a0:	18800035 	stwio	r2,0(r3)
     alt_irq_register(PIO_KEY_IRQ, NULL, key_isr);
-   20334:	018000b4 	movhi	r6,2
-   20338:	3180b404 	addi	r6,r6,720
-   2033c:	000b883a 	mov	r5,zero
-   20340:	0009883a 	mov	r4,zero
-   20344:	00207340 	call	20734 <alt_irq_register>
+   204a4:	018000b4 	movhi	r6,2
+   204a8:	31810104 	addi	r6,r6,1028
+   204ac:	000b883a 	mov	r5,zero
+   204b0:	0009883a 	mov	r4,zero
+   204b4:	00208cc0 	call	208cc <alt_irq_register>
 
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_SW_BASE, 0x7);
-   20348:	008000f4 	movhi	r2,3
-   2034c:	040001c4 	movi	r16,7
-   20350:	10841b04 	addi	r2,r2,4204
-   20354:	14000035 	stwio	r16,0(r2)
+   204b8:	008000f4 	movhi	r2,3
+   204bc:	040001c4 	movi	r16,7
+   204c0:	10841b04 	addi	r2,r2,4204
+   204c4:	14000035 	stwio	r16,0(r2)
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(PIO_SW_BASE, 0x7);
-   20358:	008000f4 	movhi	r2,3
-   2035c:	10841a04 	addi	r2,r2,4200
-   20360:	14000035 	stwio	r16,0(r2)
+   204c8:	008000f4 	movhi	r2,3
+   204cc:	10841a04 	addi	r2,r2,4200
+   204d0:	14000035 	stwio	r16,0(r2)
     alt_irq_register(4, NULL, sw_isr);
-   20364:	018000b4 	movhi	r6,2
-   20368:	3180ad04 	addi	r6,r6,692
-   2036c:	000b883a 	mov	r5,zero
-   20370:	01000104 	movi	r4,4
-   20374:	00207340 	call	20734 <alt_irq_register>
+   204d4:	018000b4 	movhi	r6,2
+   204d8:	3180fa04 	addi	r6,r6,1000
+   204dc:	000b883a 	mov	r5,zero
+   204e0:	01000104 	movi	r4,4
+   204e4:	00208cc0 	call	208cc <alt_irq_register>
 
     IOWR_ALTERA_AVALON_TIMER_CONTROL(SYS_TIMER_BASE,
-   20378:	008000f4 	movhi	r2,3
-   2037c:	10840104 	addi	r2,r2,4100
-   20380:	14000035 	stwio	r16,0(r2)
+   204e8:	008000f4 	movhi	r2,3
+   204ec:	10840104 	addi	r2,r2,4100
+   204f0:	14000035 	stwio	r16,0(r2)
         ALTERA_AVALON_TIMER_CONTROL_ITO_MSK  |
         ALTERA_AVALON_TIMER_CONTROL_CONT_MSK |
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
     alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
-   20384:	018000b4 	movhi	r6,2
-   20388:	31806f04 	addi	r6,r6,444
-   2038c:	000b883a 	mov	r5,zero
-   20390:	01000044 	movi	r4,1
-   20394:	00207340 	call	20734 <alt_irq_register>
+   204f4:	018000b4 	movhi	r6,2
+   204f8:	3180bc04 	addi	r6,r6,752
+   204fc:	000b883a 	mov	r5,zero
+   20500:	01000044 	movi	r4,1
+   20504:	00208cc0 	call	208cc <alt_irq_register>
 
-    // --- HEX en 00:00 al inicio ---
+    // --- HEX en 00:00 al inicio + filtro inicial en HEX5 ---
     hex_show_time(0);
-   20398:	0009883a 	mov	r4,zero
-   2039c:	00201d80 	call	201d8 <hex_show_time>
-    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);  // HEX5..HEX4 apagados
-   203a0:	008000f4 	movhi	r2,3
-   203a4:	10841004 	addi	r2,r2,4160
-   203a8:	00cfffc4 	movi	r3,16383
-   203ac:	10c00035 	stwio	r3,0(r2)
+   20508:	0009883a 	mov	r4,zero
+   2050c:	002030c0 	call	2030c <hex_show_time>
+    set_filter();   // lee SW[1:0] y muestra el filtro activo en HEX5
+   20510:	00204200 	call	20420 <set_filter>
 
     // --- Audio IP: esperar que el codec WM8731 termine de auto-inicializar (~500ms) ---
     for (volatile uint32_t d = 0; d < 2500000; d++) {}
-   203b0:	00c009b4 	movhi	r3,38
-   203b4:	d8000015 	stw	zero,0(sp)
-   203b8:	18c967c4 	addi	r3,r3,9631
-   203bc:	d8800017 	ldw	r2,0(sp)
-   203c0:	18800436 	bltu	r3,r2,203d4 <main+0xe8>
-   203c4:	d8800017 	ldw	r2,0(sp)
-   203c8:	10800044 	addi	r2,r2,1
-   203cc:	d8800015 	stw	r2,0(sp)
-   203d0:	003ffa06 	br	203bc <__alt_data_end+0xffff03bc>
+   20514:	00c009b4 	movhi	r3,38
+   20518:	d8000215 	stw	zero,8(sp)
+   2051c:	18c967c4 	addi	r3,r3,9631
+   20520:	d8800217 	ldw	r2,8(sp)
+   20524:	18800436 	bltu	r3,r2,20538 <main+0xdc>
+   20528:	d8800217 	ldw	r2,8(sp)
+   2052c:	10800044 	addi	r2,r2,1
+   20530:	d8800215 	stw	r2,8(sp)
+   20534:	003ffa06 	br	20520 <__alt_data_end+0xffff0520>
 
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // limpiar FIFOs
-   203d4:	044000f4 	movhi	r17,3
-   203d8:	8c440804 	addi	r17,r17,4128
-   203dc:	00800304 	movi	r2,12
-   203e0:	88800035 	stwio	r2,0(r17)
+   20538:	048000f4 	movhi	r18,3
+   2053c:	94840804 	addi	r18,r18,4128
+   20540:	00800304 	movi	r2,12
+   20544:	90800035 	stwio	r2,0(r18)
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
-   203e4:	88000035 	stwio	zero,0(r17)
-                // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
-                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
-                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
-                while (head != tail) {
-                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
-                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-   203e8:	050000f4 	movhi	r20,3
-                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                    uint32_t packed = sh[BUF_WORD_START + tail];
+   20548:	90000035 	stwio	zero,0(r18)
                     int32_t left  = (int32_t)(int16_t)(packed >> 16);
                     int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-   203ec:	054000f4 	movhi	r21,3
+   2054c:	05c000f4 	movhi	r23,3
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
-   203f0:	058000f4 	movhi	r22,3
+   20550:	070000f4 	movhi	fp,3
     // --- Estado de reproduccion (para el reloj MM:SS) ---
     uint32_t playing       = 0;
     uint32_t start_ms      = 0;
     uint32_t last_disp     = 0xFFFFFFFF;
     uint32_t paused        = 0;
     uint32_t pause_started = 0;
-   203f4:	0025883a 	mov	r18,zero
+   20554:	0029883a 	mov	r20,zero
 
     // --- Estado de reproduccion (para el reloj MM:SS) ---
     uint32_t playing       = 0;
     uint32_t start_ms      = 0;
     uint32_t last_disp     = 0xFFFFFFFF;
     uint32_t paused        = 0;
-   203f8:	0007883a 	mov	r3,zero
+   20558:	0023883a 	mov	r17,zero
     uint32_t tail = 0;
 
     // --- Estado de reproduccion (para el reloj MM:SS) ---
     uint32_t playing       = 0;
     uint32_t start_ms      = 0;
     uint32_t last_disp     = 0xFFFFFFFF;
-   203fc:	073fffc4 	movi	fp,-1
+   2055c:	05bfffc4 	movi	r22,-1
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
 
     // --- Estado de reproduccion (para el reloj MM:SS) ---
     uint32_t playing       = 0;
     uint32_t start_ms      = 0;
-   20400:	002f883a 	mov	r23,zero
+   20560:	0027883a 	mov	r19,zero
     // --- Shared memory ---
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
 
     // --- Estado de reproduccion (para el reloj MM:SS) ---
     uint32_t playing       = 0;
-   20404:	000b883a 	mov	r5,zero
+   20564:	0009883a 	mov	r4,zero
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // limpiar FIFOs
     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
 
     // --- Shared memory ---
     volatile uint32_t *sh = (volatile uint32_t *)(SHARED_MEM_BASE);
     uint32_t tail = 0;
-   20408:	0021883a 	mov	r16,zero
+   20568:	0021883a 	mov	r16,zero
                 paused = !paused;
                 if (paused) pause_started = tick_ms;
                 else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
             }
             if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
             if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
-   2040c:	04c00044 	movi	r19,1
-                // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
-                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
-                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
-                while (head != tail) {
-                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
-                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-   20410:	a5040904 	addi	r20,r20,4132
-                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                    uint32_t packed = sh[BUF_WORD_START + tail];
+   2056c:	05400044 	movi	r21,1
                     int32_t left  = (int32_t)(int16_t)(packed >> 16);
                     int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-   20414:	ad440a04 	addi	r21,r21,4136
+   20570:	bdc40a04 	addi	r23,r23,4136
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
-   20418:	b5840b04 	addi	r22,r22,4140
+   20574:	e7040b04 	addi	fp,fp,4140
     uint32_t pause_started = 0;
 
     while (1) {
 
         // --- KEY: control de reproduccion (sin printf para no bloquear el audio) ---
         if (key_event) {
-   2041c:	d0a04017 	ldw	r2,-32512(gp)
-   20420:	10001626 	beq	r2,zero,2047c <main+0x190>
+   20578:	d0e04917 	ldw	r3,-32476(gp)
+   2057c:	18001626 	beq	r3,zero,205d8 <main+0x17c>
             uint32_t k = key_event;
-   20424:	d1204017 	ldw	r4,-32512(gp)
+   20580:	d0e04917 	ldw	r3,-32476(gp)
             key_event = 0;
-   20428:	d0204015 	stw	zero,-32512(gp)
+   20584:	d0204915 	stw	zero,-32476(gp)
             if (k & 0x1) {                       // KEY0 = play/pausa
-   2042c:	2080004c 	andi	r2,r4,1
-   20430:	10000926 	beq	r2,zero,20458 <main+0x16c>
+   20588:	1940004c 	andi	r5,r3,1
+   2058c:	28000926 	beq	r5,zero,205b4 <main+0x158>
                 paused = !paused;
-   20434:	1805003a 	cmpeq	r2,r3,zero
-   20438:	10803fcc 	andi	r2,r2,255
+   20590:	880b003a 	cmpeq	r5,r17,zero
+   20594:	29403fcc 	andi	r5,r5,255
                 if (paused) pause_started = tick_ms;
-   2043c:	1800021e 	bne	r3,zero,20448 <main+0x15c>
-   20440:	d4a03f17 	ldw	r18,-32516(gp)
-   20444:	00000306 	br	20454 <main+0x168>
+   20598:	8800021e 	bne	r17,zero,205a4 <main+0x148>
+   2059c:	d5204817 	ldw	r20,-32480(gp)
+   205a0:	00000306 	br	205b0 <main+0x154>
                 else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
-   20448:	d0e03f17 	ldw	r3,-32516(gp)
-   2044c:	b8ef883a 	add	r23,r23,r3
-   20450:	bcafc83a 	sub	r23,r23,r18
+   205a4:	d1a04817 	ldw	r6,-32480(gp)
+   205a8:	99a7883a 	add	r19,r19,r6
+   205ac:	9d27c83a 	sub	r19,r19,r20
         // --- KEY: control de reproduccion (sin printf para no bloquear el audio) ---
         if (key_event) {
             uint32_t k = key_event;
             key_event = 0;
             if (k & 0x1) {                       // KEY0 = play/pausa
                 paused = !paused;
-   20454:	1007883a 	mov	r3,r2
+   205b0:	2823883a 	mov	r17,r5
                 if (paused) pause_started = tick_ms;
                 else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
             }
             if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
-   20458:	2080008c 	andi	r2,r4,2
-   2045c:	10000326 	beq	r2,zero,2046c <main+0x180>
-   20460:	01800084 	movi	r6,2
-   20464:	00800304 	movi	r2,12
-   20468:	11800015 	stw	r6,0(r2)
+   205b4:	1940008c 	andi	r5,r3,2
+   205b8:	28000326 	beq	r5,zero,205c8 <main+0x16c>
+   205bc:	01800084 	movi	r6,2
+   205c0:	01400304 	movi	r5,12
+   205c4:	29800015 	stw	r6,0(r5)
             if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
-   2046c:	2100010c 	andi	r4,r4,4
-   20470:	20000226 	beq	r4,zero,2047c <main+0x190>
-   20474:	00800304 	movi	r2,12
-   20478:	14c00015 	stw	r19,0(r2)
+   205c8:	18c0010c 	andi	r3,r3,4
+   205cc:	18000226 	beq	r3,zero,205d8 <main+0x17c>
+   205d0:	00c00304 	movi	r3,12
+   205d4:	1d400015 	stw	r21,0(r3)
         }
-        if (sw_event) { sw_event = 0; }
-   2047c:	d0a03e17 	ldw	r2,-32520(gp)
-   20480:	10000126 	beq	r2,zero,20488 <main+0x19c>
-   20484:	d0203e15 	stw	zero,-32520(gp)
+        // --- SW: cambio de filtro (actualiza filter_mode + indicador en HEX5) ---
+        if (sw_event) { sw_event = 0; set_filter(); }
+   205d8:	d0e04717 	ldw	r3,-32484(gp)
+   205dc:	18000426 	beq	r3,zero,205f0 <main+0x194>
+   205e0:	d9000315 	stw	r4,12(sp)
+   205e4:	d0204715 	stw	zero,-32484(gp)
+   205e8:	00204200 	call	20420 <set_filter>
+   205ec:	d9000317 	ldw	r4,12(sp)
 
         // --- Audio polling ---
         uint32_t cmd = sh[IDX_CMD];
-   20488:	0005883a 	mov	r2,zero
-   2048c:	11000017 	ldw	r4,0(r2)
+   205f0:	0007883a 	mov	r3,zero
+   205f4:	19400017 	ldw	r5,0(r3)
 
         if (cmd == 1) {
-   20490:	24c02f1e 	bne	r4,r19,20550 <main+0x264>
+   205f8:	2d403b1e 	bne	r5,r21,206e8 <main+0x28c>
             // arranque de cancion: fijar referencia de tiempo
             if (!playing) {
-   20494:	2800031e 	bne	r5,zero,204a4 <main+0x1b8>
+   205fc:	2000031e 	bne	r4,zero,2060c <main+0x1b0>
                 playing   = 1;
                 paused    = 0;
                 start_ms  = tick_ms;
-   20498:	d5e03f17 	ldw	r23,-32516(gp)
+   20600:	d4e04817 	ldw	r19,-32480(gp)
                 last_disp = 0xFFFFFFFF;
-   2049c:	00ffffc4 	movi	r3,-1
-   204a0:	00000206 	br	204ac <main+0x1c0>
+   20604:	047fffc4 	movi	r17,-1
+   20608:	00000206 	br	20614 <main+0x1b8>
             }
 
             // actualizar HEX MM:SS una vez por segundo (congelado si esta en pausa)
             if (!paused) {
-   204a4:	18000c1e 	bne	r3,zero,204d8 <main+0x1ec>
-   204a8:	e007883a 	mov	r3,fp
+   2060c:	88000a1e 	bne	r17,zero,20638 <main+0x1dc>
+   20610:	b023883a 	mov	r17,r22
                 uint32_t el = (tick_ms - start_ms) / 1000;
-   204ac:	d1203f17 	ldw	r4,-32516(gp)
-   204b0:	0140fa04 	movi	r5,1000
-   204b4:	d8c00115 	stw	r3,4(sp)
-   204b8:	25c9c83a 	sub	r4,r4,r23
-   204bc:	00206780 	call	20678 <__udivsi3>
+   20614:	d1204817 	ldw	r4,-32480(gp)
+   20618:	0140fa04 	movi	r5,1000
+   2061c:	24c9c83a 	sub	r4,r4,r19
+   20620:	00208100 	call	20810 <__udivsi3>
+   20624:	102d883a 	mov	r22,r2
                 if (el != last_disp) {
-   204c0:	d8c00117 	ldw	r3,4(sp)
-                last_disp = 0xFFFFFFFF;
-            }
-
-            // actualizar HEX MM:SS una vez por segundo (congelado si esta en pausa)
-            if (!paused) {
-                uint32_t el = (tick_ms - start_ms) / 1000;
-   204c4:	1039883a 	mov	fp,r2
-                if (el != last_disp) {
-   204c8:	10c00226 	beq	r2,r3,204d4 <main+0x1e8>
+   20628:	14400226 	beq	r2,r17,20634 <main+0x1d8>
                     last_disp = el;
                     hex_show_time(el);
-   204cc:	1009883a 	mov	r4,r2
-   204d0:	00201d80 	call	201d8 <hex_show_time>
-   204d4:	0007883a 	mov	r3,zero
+   2062c:	1009883a 	mov	r4,r2
+   20630:	002030c0 	call	2030c <hex_show_time>
+   20634:	0023883a 	mov	r17,zero
                 }
             }
 
             uint32_t head = sh[IDX_HEAD];
-   204d8:	0005883a 	mov	r2,zero
-   204dc:	11400117 	ldw	r5,4(r2)
+   20638:	0007883a 	mov	r3,zero
+   2063c:	19c00117 	ldw	r7,4(r3)
             if (!paused) {   // en pausa: no drena -> buffer se llena -> ARM se frena
-   204e0:	18000226 	beq	r3,zero,204ec <main+0x200>
-   204e4:	01400044 	movi	r5,1
-   204e8:	003fcc06 	br	2041c <__alt_data_end+0xffff041c>
+   20640:	88002226 	beq	r17,zero,206cc <main+0x270>
+   20644:	01000044 	movi	r4,1
+   20648:	003fcb06 	br	20578 <__alt_data_end+0xffff0578>
+                // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
+                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
+                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
+                while (head != tail) {
+                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
+                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+   2064c:	008000f4 	movhi	r2,3
+   20650:	10840904 	addi	r2,r2,4132
+   20654:	10c00037 	ldwio	r3,0(r2)
+                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
+   20658:	1808d43a 	srli	r4,r3,16
+   2065c:	21003fcc 	andi	r4,r4,255
+   20660:	20001c26 	beq	r4,zero,206d4 <main+0x278>
+   20664:	1806d63a 	srli	r3,r3,24
+   20668:	18001a26 	beq	r3,zero,206d4 <main+0x278>
+
+                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                    uint32_t packed = sh[BUF_WORD_START + tail];
+   2066c:	80c01004 	addi	r3,r16,64
+   20670:	18c7883a 	add	r3,r3,r3
+   20674:	18c7883a 	add	r3,r3,r3
+   20678:	18c00017 	ldw	r3,0(r3)
+                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
                     int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+   2067c:	d1a04617 	ldw	r6,-32488(gp)
+   20680:	d80b883a 	mov	r5,sp
+                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
+
+                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                    uint32_t packed = sh[BUF_WORD_START + tail];
+                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
+   20684:	1809d43a 	srai	r4,r3,16
+                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+   20688:	18ffffcc 	andi	r3,r3,65535
+   2068c:	18e0001c 	xori	r3,r3,32768
+                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
+
+                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                    uint32_t packed = sh[BUF_WORD_START + tail];
+                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
+   20690:	d9000115 	stw	r4,4(sp)
+                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+   20694:	18e00004 	addi	r3,r3,-32768
+
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+   20698:	d9000104 	addi	r4,sp,4
+                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
+
+                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                    uint32_t packed = sh[BUF_WORD_START + tail];
+                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
+                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+   2069c:	d8c00015 	stw	r3,0(sp)
+
+                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+   206a0:	d9c00315 	stw	r7,12(sp)
+   206a4:	00201bc0 	call	201bc <apply_filter>
+
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
+   206a8:	d8c00117 	ldw	r3,4(sp)
+   206ac:	b8c00035 	stwio	r3,0(r23)
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
+   206b0:	d8c00017 	ldw	r3,0(sp)
+   206b4:	e0c00035 	stwio	r3,0(fp)
 
                     if (++tail >= BUF_WORDS) tail = 0;   // sin modulo (division)
-   204ec:	018fefc4 	movi	r6,16319
+   206b8:	84000044 	addi	r16,r16,1
+   206bc:	00cfefc4 	movi	r3,16319
+   206c0:	d9c00317 	ldw	r7,12(sp)
+   206c4:	1c00012e 	bgeu	r3,r16,206cc <main+0x270>
+   206c8:	0021883a 	mov	r16,zero
             if (!paused) {   // en pausa: no drena -> buffer se llena -> ARM se frena
                 // Drenar TODAS las muestras disponibles de un saque mientras haya espacio en el
                 // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
                 // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
                 // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
                 while (head != tail) {
-   204f0:	81400426 	beq	r16,r5,20504 <main+0x218>
-                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
-                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-   204f4:	a0800037 	ldwio	r2,0(r20)
-                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
-   204f8:	1008d43a 	srli	r4,r2,16
-   204fc:	21003fcc 	andi	r4,r4,255
-   20500:	2000031e 	bne	r4,zero,20510 <main+0x224>
+   206cc:	81ffdf1e 	bne	r16,r7,2064c <__alt_data_end+0xffff064c>
+   206d0:	00000106 	br	206d8 <main+0x27c>
+   206d4:	800f883a 	mov	r7,r16
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
                     IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
 
                     if (++tail >= BUF_WORDS) tail = 0;   // sin modulo (division)
                 }
                 sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
-   20504:	00800204 	movi	r2,8
-   20508:	14000015 	stw	r16,0(r2)
-   2050c:	003ff506 	br	204e4 <__alt_data_end+0xffff04e4>
-                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
-                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
-                while (head != tail) {
-                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
-                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
-   20510:	1004d63a 	srli	r2,r2,24
-   20514:	103ffb26 	beq	r2,zero,20504 <__alt_data_end+0xffff0504>
-
-                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                    uint32_t packed = sh[BUF_WORD_START + tail];
-   20518:	81001004 	addi	r4,r16,64
-   2051c:	2109883a 	add	r4,r4,r4
-   20520:	2109883a 	add	r4,r4,r4
-   20524:	20800017 	ldw	r2,0(r4)
-                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
-                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
-
-                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-   20528:	1009d43a 	srai	r4,r2,16
-   2052c:	a9000035 	stwio	r4,0(r21)
-                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
-   20530:	10bfffcc 	andi	r2,r2,65535
-   20534:	10a0001c 	xori	r2,r2,32768
-   20538:	10a00004 	addi	r2,r2,-32768
-   2053c:	b0800035 	stwio	r2,0(r22)
-
-                    if (++tail >= BUF_WORDS) tail = 0;   // sin modulo (division)
-   20540:	84000044 	addi	r16,r16,1
-   20544:	343fea2e 	bgeu	r6,r16,204f0 <__alt_data_end+0xffff04f0>
-   20548:	0021883a 	mov	r16,zero
-   2054c:	003fe806 	br	204f0 <__alt_data_end+0xffff04f0>
-                }
-                sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
+   206d8:	00c00204 	movi	r3,8
+   206dc:	19c00015 	stw	r7,0(r3)
+   206e0:	3821883a 	mov	r16,r7
+   206e4:	003fd706 	br	20644 <__alt_data_end+0xffff0644>
             }
 
         } else if (cmd == 2) {
-   20550:	01800084 	movi	r6,2
-   20554:	21bfb11e 	bne	r4,r6,2041c <__alt_data_end+0xffff041c>
+   206e8:	01800084 	movi	r6,2
+   206ec:	29bfa21e 	bne	r5,r6,20578 <__alt_data_end+0xffff0578>
             // STOP
             playing = 0;
             paused  = 0;
             tail = 0;
             sh[IDX_TAIL] = 0;
-   20558:	00c00204 	movi	r3,8
-   2055c:	18000015 	stw	zero,0(r3)
+   206f0:	01000204 	movi	r4,8
+   206f4:	20000015 	stw	zero,0(r4)
             sh[IDX_CMD]  = 0;   // ACK: volver a idle
-   20560:	10000015 	stw	zero,0(r2)
+   206f8:	18000015 	stw	zero,0(r3)
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0xC); // clear FIFOs
-   20564:	00800304 	movi	r2,12
-   20568:	88800035 	stwio	r2,0(r17)
+   206fc:	00c00304 	movi	r3,12
+   20700:	90c00035 	stwio	r3,0(r18)
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
-   2056c:	88000035 	stwio	zero,0(r17)
+   20704:	90000035 	stwio	zero,0(r18)
             }
 
         } else if (cmd == 2) {
             // STOP
             playing = 0;
             paused  = 0;
-   20570:	0007883a 	mov	r3,zero
+   20708:	0023883a 	mov	r17,zero
                 sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
             }
 
         } else if (cmd == 2) {
             // STOP
             playing = 0;
-   20574:	000b883a 	mov	r5,zero
+   2070c:	0009883a 	mov	r4,zero
             paused  = 0;
             tail = 0;
-   20578:	0021883a 	mov	r16,zero
-   2057c:	003fa706 	br	2041c <__alt_data_end+0xffff041c>
+   20710:	0021883a 	mov	r16,zero
+   20714:	003f9806 	br	20578 <__alt_data_end+0xffff0578>
 
-00020580 <__divsi3>:
-   20580:	20001b16 	blt	r4,zero,205f0 <__divsi3+0x70>
-   20584:	000f883a 	mov	r7,zero
-   20588:	28001616 	blt	r5,zero,205e4 <__divsi3+0x64>
-   2058c:	200d883a 	mov	r6,r4
-   20590:	29001a2e 	bgeu	r5,r4,205fc <__divsi3+0x7c>
-   20594:	00800804 	movi	r2,32
-   20598:	00c00044 	movi	r3,1
-   2059c:	00000106 	br	205a4 <__divsi3+0x24>
-   205a0:	10000d26 	beq	r2,zero,205d8 <__divsi3+0x58>
-   205a4:	294b883a 	add	r5,r5,r5
-   205a8:	10bfffc4 	addi	r2,r2,-1
-   205ac:	18c7883a 	add	r3,r3,r3
-   205b0:	293ffb36 	bltu	r5,r4,205a0 <__alt_data_end+0xffff05a0>
-   205b4:	0005883a 	mov	r2,zero
-   205b8:	18000726 	beq	r3,zero,205d8 <__divsi3+0x58>
-   205bc:	0005883a 	mov	r2,zero
-   205c0:	31400236 	bltu	r6,r5,205cc <__divsi3+0x4c>
-   205c4:	314dc83a 	sub	r6,r6,r5
-   205c8:	10c4b03a 	or	r2,r2,r3
-   205cc:	1806d07a 	srli	r3,r3,1
-   205d0:	280ad07a 	srli	r5,r5,1
-   205d4:	183ffa1e 	bne	r3,zero,205c0 <__alt_data_end+0xffff05c0>
-   205d8:	38000126 	beq	r7,zero,205e0 <__divsi3+0x60>
-   205dc:	0085c83a 	sub	r2,zero,r2
-   205e0:	f800283a 	ret
-   205e4:	014bc83a 	sub	r5,zero,r5
-   205e8:	39c0005c 	xori	r7,r7,1
-   205ec:	003fe706 	br	2058c <__alt_data_end+0xffff058c>
-   205f0:	0109c83a 	sub	r4,zero,r4
-   205f4:	01c00044 	movi	r7,1
-   205f8:	003fe306 	br	20588 <__alt_data_end+0xffff0588>
-   205fc:	00c00044 	movi	r3,1
-   20600:	003fee06 	br	205bc <__alt_data_end+0xffff05bc>
+00020718 <__divsi3>:
+   20718:	20001b16 	blt	r4,zero,20788 <__divsi3+0x70>
+   2071c:	000f883a 	mov	r7,zero
+   20720:	28001616 	blt	r5,zero,2077c <__divsi3+0x64>
+   20724:	200d883a 	mov	r6,r4
+   20728:	29001a2e 	bgeu	r5,r4,20794 <__divsi3+0x7c>
+   2072c:	00800804 	movi	r2,32
+   20730:	00c00044 	movi	r3,1
+   20734:	00000106 	br	2073c <__divsi3+0x24>
+   20738:	10000d26 	beq	r2,zero,20770 <__divsi3+0x58>
+   2073c:	294b883a 	add	r5,r5,r5
+   20740:	10bfffc4 	addi	r2,r2,-1
+   20744:	18c7883a 	add	r3,r3,r3
+   20748:	293ffb36 	bltu	r5,r4,20738 <__alt_data_end+0xffff0738>
+   2074c:	0005883a 	mov	r2,zero
+   20750:	18000726 	beq	r3,zero,20770 <__divsi3+0x58>
+   20754:	0005883a 	mov	r2,zero
+   20758:	31400236 	bltu	r6,r5,20764 <__divsi3+0x4c>
+   2075c:	314dc83a 	sub	r6,r6,r5
+   20760:	10c4b03a 	or	r2,r2,r3
+   20764:	1806d07a 	srli	r3,r3,1
+   20768:	280ad07a 	srli	r5,r5,1
+   2076c:	183ffa1e 	bne	r3,zero,20758 <__alt_data_end+0xffff0758>
+   20770:	38000126 	beq	r7,zero,20778 <__divsi3+0x60>
+   20774:	0085c83a 	sub	r2,zero,r2
+   20778:	f800283a 	ret
+   2077c:	014bc83a 	sub	r5,zero,r5
+   20780:	39c0005c 	xori	r7,r7,1
+   20784:	003fe706 	br	20724 <__alt_data_end+0xffff0724>
+   20788:	0109c83a 	sub	r4,zero,r4
+   2078c:	01c00044 	movi	r7,1
+   20790:	003fe306 	br	20720 <__alt_data_end+0xffff0720>
+   20794:	00c00044 	movi	r3,1
+   20798:	003fee06 	br	20754 <__alt_data_end+0xffff0754>
 
-00020604 <__modsi3>:
-   20604:	20001716 	blt	r4,zero,20664 <__modsi3+0x60>
-   20608:	000f883a 	mov	r7,zero
-   2060c:	2005883a 	mov	r2,r4
-   20610:	28001216 	blt	r5,zero,2065c <__modsi3+0x58>
-   20614:	2900162e 	bgeu	r5,r4,20670 <__modsi3+0x6c>
-   20618:	01800804 	movi	r6,32
-   2061c:	00c00044 	movi	r3,1
-   20620:	00000106 	br	20628 <__modsi3+0x24>
-   20624:	30000a26 	beq	r6,zero,20650 <__modsi3+0x4c>
-   20628:	294b883a 	add	r5,r5,r5
-   2062c:	31bfffc4 	addi	r6,r6,-1
-   20630:	18c7883a 	add	r3,r3,r3
-   20634:	293ffb36 	bltu	r5,r4,20624 <__alt_data_end+0xffff0624>
-   20638:	18000526 	beq	r3,zero,20650 <__modsi3+0x4c>
-   2063c:	1806d07a 	srli	r3,r3,1
-   20640:	11400136 	bltu	r2,r5,20648 <__modsi3+0x44>
-   20644:	1145c83a 	sub	r2,r2,r5
-   20648:	280ad07a 	srli	r5,r5,1
-   2064c:	183ffb1e 	bne	r3,zero,2063c <__alt_data_end+0xffff063c>
-   20650:	38000126 	beq	r7,zero,20658 <__modsi3+0x54>
-   20654:	0085c83a 	sub	r2,zero,r2
-   20658:	f800283a 	ret
-   2065c:	014bc83a 	sub	r5,zero,r5
-   20660:	003fec06 	br	20614 <__alt_data_end+0xffff0614>
-   20664:	0109c83a 	sub	r4,zero,r4
-   20668:	01c00044 	movi	r7,1
-   2066c:	003fe706 	br	2060c <__alt_data_end+0xffff060c>
-   20670:	00c00044 	movi	r3,1
-   20674:	003ff106 	br	2063c <__alt_data_end+0xffff063c>
+0002079c <__modsi3>:
+   2079c:	20001716 	blt	r4,zero,207fc <__modsi3+0x60>
+   207a0:	000f883a 	mov	r7,zero
+   207a4:	2005883a 	mov	r2,r4
+   207a8:	28001216 	blt	r5,zero,207f4 <__modsi3+0x58>
+   207ac:	2900162e 	bgeu	r5,r4,20808 <__modsi3+0x6c>
+   207b0:	01800804 	movi	r6,32
+   207b4:	00c00044 	movi	r3,1
+   207b8:	00000106 	br	207c0 <__modsi3+0x24>
+   207bc:	30000a26 	beq	r6,zero,207e8 <__modsi3+0x4c>
+   207c0:	294b883a 	add	r5,r5,r5
+   207c4:	31bfffc4 	addi	r6,r6,-1
+   207c8:	18c7883a 	add	r3,r3,r3
+   207cc:	293ffb36 	bltu	r5,r4,207bc <__alt_data_end+0xffff07bc>
+   207d0:	18000526 	beq	r3,zero,207e8 <__modsi3+0x4c>
+   207d4:	1806d07a 	srli	r3,r3,1
+   207d8:	11400136 	bltu	r2,r5,207e0 <__modsi3+0x44>
+   207dc:	1145c83a 	sub	r2,r2,r5
+   207e0:	280ad07a 	srli	r5,r5,1
+   207e4:	183ffb1e 	bne	r3,zero,207d4 <__alt_data_end+0xffff07d4>
+   207e8:	38000126 	beq	r7,zero,207f0 <__modsi3+0x54>
+   207ec:	0085c83a 	sub	r2,zero,r2
+   207f0:	f800283a 	ret
+   207f4:	014bc83a 	sub	r5,zero,r5
+   207f8:	003fec06 	br	207ac <__alt_data_end+0xffff07ac>
+   207fc:	0109c83a 	sub	r4,zero,r4
+   20800:	01c00044 	movi	r7,1
+   20804:	003fe706 	br	207a4 <__alt_data_end+0xffff07a4>
+   20808:	00c00044 	movi	r3,1
+   2080c:	003ff106 	br	207d4 <__alt_data_end+0xffff07d4>
 
-00020678 <__udivsi3>:
-   20678:	200d883a 	mov	r6,r4
-   2067c:	2900152e 	bgeu	r5,r4,206d4 <__udivsi3+0x5c>
-   20680:	28001416 	blt	r5,zero,206d4 <__udivsi3+0x5c>
-   20684:	00800804 	movi	r2,32
-   20688:	00c00044 	movi	r3,1
-   2068c:	00000206 	br	20698 <__udivsi3+0x20>
-   20690:	10000e26 	beq	r2,zero,206cc <__udivsi3+0x54>
-   20694:	28000516 	blt	r5,zero,206ac <__udivsi3+0x34>
-   20698:	294b883a 	add	r5,r5,r5
-   2069c:	10bfffc4 	addi	r2,r2,-1
-   206a0:	18c7883a 	add	r3,r3,r3
-   206a4:	293ffa36 	bltu	r5,r4,20690 <__alt_data_end+0xffff0690>
-   206a8:	18000826 	beq	r3,zero,206cc <__udivsi3+0x54>
-   206ac:	0005883a 	mov	r2,zero
-   206b0:	31400236 	bltu	r6,r5,206bc <__udivsi3+0x44>
-   206b4:	314dc83a 	sub	r6,r6,r5
-   206b8:	10c4b03a 	or	r2,r2,r3
-   206bc:	1806d07a 	srli	r3,r3,1
-   206c0:	280ad07a 	srli	r5,r5,1
-   206c4:	183ffa1e 	bne	r3,zero,206b0 <__alt_data_end+0xffff06b0>
-   206c8:	f800283a 	ret
-   206cc:	0005883a 	mov	r2,zero
-   206d0:	f800283a 	ret
-   206d4:	00c00044 	movi	r3,1
-   206d8:	003ff406 	br	206ac <__alt_data_end+0xffff06ac>
+00020810 <__udivsi3>:
+   20810:	200d883a 	mov	r6,r4
+   20814:	2900152e 	bgeu	r5,r4,2086c <__udivsi3+0x5c>
+   20818:	28001416 	blt	r5,zero,2086c <__udivsi3+0x5c>
+   2081c:	00800804 	movi	r2,32
+   20820:	00c00044 	movi	r3,1
+   20824:	00000206 	br	20830 <__udivsi3+0x20>
+   20828:	10000e26 	beq	r2,zero,20864 <__udivsi3+0x54>
+   2082c:	28000516 	blt	r5,zero,20844 <__udivsi3+0x34>
+   20830:	294b883a 	add	r5,r5,r5
+   20834:	10bfffc4 	addi	r2,r2,-1
+   20838:	18c7883a 	add	r3,r3,r3
+   2083c:	293ffa36 	bltu	r5,r4,20828 <__alt_data_end+0xffff0828>
+   20840:	18000826 	beq	r3,zero,20864 <__udivsi3+0x54>
+   20844:	0005883a 	mov	r2,zero
+   20848:	31400236 	bltu	r6,r5,20854 <__udivsi3+0x44>
+   2084c:	314dc83a 	sub	r6,r6,r5
+   20850:	10c4b03a 	or	r2,r2,r3
+   20854:	1806d07a 	srli	r3,r3,1
+   20858:	280ad07a 	srli	r5,r5,1
+   2085c:	183ffa1e 	bne	r3,zero,20848 <__alt_data_end+0xffff0848>
+   20860:	f800283a 	ret
+   20864:	0005883a 	mov	r2,zero
+   20868:	f800283a 	ret
+   2086c:	00c00044 	movi	r3,1
+   20870:	003ff406 	br	20844 <__alt_data_end+0xffff0844>
 
-000206dc <__umodsi3>:
-   206dc:	2005883a 	mov	r2,r4
-   206e0:	2900122e 	bgeu	r5,r4,2072c <__umodsi3+0x50>
-   206e4:	28001116 	blt	r5,zero,2072c <__umodsi3+0x50>
-   206e8:	01800804 	movi	r6,32
-   206ec:	00c00044 	movi	r3,1
-   206f0:	00000206 	br	206fc <__umodsi3+0x20>
-   206f4:	30000c26 	beq	r6,zero,20728 <__umodsi3+0x4c>
-   206f8:	28000516 	blt	r5,zero,20710 <__umodsi3+0x34>
-   206fc:	294b883a 	add	r5,r5,r5
-   20700:	31bfffc4 	addi	r6,r6,-1
-   20704:	18c7883a 	add	r3,r3,r3
-   20708:	293ffa36 	bltu	r5,r4,206f4 <__alt_data_end+0xffff06f4>
-   2070c:	18000626 	beq	r3,zero,20728 <__umodsi3+0x4c>
-   20710:	1806d07a 	srli	r3,r3,1
-   20714:	11400136 	bltu	r2,r5,2071c <__umodsi3+0x40>
-   20718:	1145c83a 	sub	r2,r2,r5
-   2071c:	280ad07a 	srli	r5,r5,1
-   20720:	183ffb1e 	bne	r3,zero,20710 <__alt_data_end+0xffff0710>
-   20724:	f800283a 	ret
-   20728:	f800283a 	ret
-   2072c:	00c00044 	movi	r3,1
-   20730:	003ff706 	br	20710 <__alt_data_end+0xffff0710>
+00020874 <__umodsi3>:
+   20874:	2005883a 	mov	r2,r4
+   20878:	2900122e 	bgeu	r5,r4,208c4 <__umodsi3+0x50>
+   2087c:	28001116 	blt	r5,zero,208c4 <__umodsi3+0x50>
+   20880:	01800804 	movi	r6,32
+   20884:	00c00044 	movi	r3,1
+   20888:	00000206 	br	20894 <__umodsi3+0x20>
+   2088c:	30000c26 	beq	r6,zero,208c0 <__umodsi3+0x4c>
+   20890:	28000516 	blt	r5,zero,208a8 <__umodsi3+0x34>
+   20894:	294b883a 	add	r5,r5,r5
+   20898:	31bfffc4 	addi	r6,r6,-1
+   2089c:	18c7883a 	add	r3,r3,r3
+   208a0:	293ffa36 	bltu	r5,r4,2088c <__alt_data_end+0xffff088c>
+   208a4:	18000626 	beq	r3,zero,208c0 <__umodsi3+0x4c>
+   208a8:	1806d07a 	srli	r3,r3,1
+   208ac:	11400136 	bltu	r2,r5,208b4 <__umodsi3+0x40>
+   208b0:	1145c83a 	sub	r2,r2,r5
+   208b4:	280ad07a 	srli	r5,r5,1
+   208b8:	183ffb1e 	bne	r3,zero,208a8 <__alt_data_end+0xffff08a8>
+   208bc:	f800283a 	ret
+   208c0:	f800283a 	ret
+   208c4:	00c00044 	movi	r3,1
+   208c8:	003ff706 	br	208a8 <__alt_data_end+0xffff08a8>
 
-00020734 <alt_irq_register>:
+000208cc <alt_irq_register>:
                       alt_isr_func handler)
 {
   int rc = -EINVAL;  
   alt_irq_context status;
 
   if (id < ALT_NIRQ)
-   20734:	008007c4 	movi	r2,31
-   20738:	11002136 	bltu	r2,r4,207c0 <alt_irq_register+0x8c>
+   208cc:	008007c4 	movi	r2,31
+   208d0:	11002136 	bltu	r2,r4,20958 <alt_irq_register+0x8c>
 static ALT_INLINE alt_irq_context ALT_ALWAYS_INLINE 
        alt_irq_disable_all (void)
 {
   alt_irq_context context;
 
   NIOS2_READ_STATUS (context);
-   2073c:	000f303a 	rdctl	r7,status
+   208d4:	000f303a 	rdctl	r7,status
 
   NIOS2_WRITE_STATUS (context & ~NIOS2_STATUS_PIE_MSK);
-   20740:	00ffff84 	movi	r3,-2
-   20744:	38c4703a 	and	r2,r7,r3
-   20748:	1001703a 	wrctl	status,r2
+   208d8:	00ffff84 	movi	r3,-2
+   208dc:	38c4703a 	and	r2,r7,r3
+   208e0:	1001703a 	wrctl	status,r2
      * state.
      */
 
     status = alt_irq_disable_all ();
 
     alt_irq[id].handler = handler;
-   2074c:	200490fa 	slli	r2,r4,3
-   20750:	020000b4 	movhi	r8,2
-   20754:	42031204 	addi	r8,r8,3144
-   20758:	4085883a 	add	r2,r8,r2
-   2075c:	11800015 	stw	r6,0(r2)
+   208e4:	200490fa 	slli	r2,r4,3
+   208e8:	020000b4 	movhi	r8,2
+   208ec:	42038104 	addi	r8,r8,3588
+   208f0:	4085883a 	add	r2,r8,r2
+   208f4:	11800015 	stw	r6,0(r2)
     alt_irq[id].context = context;
-   20760:	11400115 	stw	r5,4(r2)
-   20764:	00800044 	movi	r2,1
+   208f8:	11400115 	stw	r5,4(r2)
+   208fc:	00800044 	movi	r2,1
 
     rc = (handler) ? alt_irq_enable (id): alt_irq_disable (id);
-   20768:	30000726 	beq	r6,zero,20788 <alt_irq_register+0x54>
+   20900:	30000726 	beq	r6,zero,20920 <alt_irq_register+0x54>
 static ALT_INLINE alt_irq_context ALT_ALWAYS_INLINE 
        alt_irq_disable_all (void)
 {
   alt_irq_context context;
 
   NIOS2_READ_STATUS (context);
-   2076c:	000b303a 	rdctl	r5,status
+   20904:	000b303a 	rdctl	r5,status
 
   NIOS2_WRITE_STATUS (context & ~NIOS2_STATUS_PIE_MSK);
-   20770:	28c6703a 	and	r3,r5,r3
-   20774:	1801703a 	wrctl	status,r3
+   20908:	28c6703a 	and	r3,r5,r3
+   2090c:	1801703a 	wrctl	status,r3
   alt_irq_context  status;
   extern volatile alt_u32 alt_irq_active;
 
   status = alt_irq_disable_all ();
 
   alt_irq_active |= (1 << id);
-   20778:	d0e04117 	ldw	r3,-32508(gp)
-   2077c:	1104983a 	sll	r2,r2,r4
-   20780:	10c4b03a 	or	r2,r2,r3
-   20784:	00000706 	br	207a4 <alt_irq_register+0x70>
+   20910:	d0e04a17 	ldw	r3,-32472(gp)
+   20914:	1104983a 	sll	r2,r2,r4
+   20918:	10c4b03a 	or	r2,r2,r3
+   2091c:	00000706 	br	2093c <alt_irq_register+0x70>
 static ALT_INLINE alt_irq_context ALT_ALWAYS_INLINE 
        alt_irq_disable_all (void)
 {
   alt_irq_context context;
 
   NIOS2_READ_STATUS (context);
-   20788:	000b303a 	rdctl	r5,status
+   20920:	000b303a 	rdctl	r5,status
 
   NIOS2_WRITE_STATUS (context & ~NIOS2_STATUS_PIE_MSK);
-   2078c:	28c6703a 	and	r3,r5,r3
-   20790:	1801703a 	wrctl	status,r3
+   20924:	28c6703a 	and	r3,r5,r3
+   20928:	1801703a 	wrctl	status,r3
   alt_irq_context  status;
   extern volatile alt_u32 alt_irq_active;
 
   status = alt_irq_disable_all ();
 
   alt_irq_active &= ~(1 << id);
-   20794:	1104983a 	sll	r2,r2,r4
-   20798:	d0e04117 	ldw	r3,-32508(gp)
-   2079c:	0084303a 	nor	r2,zero,r2
-   207a0:	10c4703a 	and	r2,r2,r3
-   207a4:	d0a04115 	stw	r2,-32508(gp)
+   2092c:	1104983a 	sll	r2,r2,r4
+   20930:	d0e04a17 	ldw	r3,-32472(gp)
+   20934:	0084303a 	nor	r2,zero,r2
+   20938:	10c4703a 	and	r2,r2,r3
+   2093c:	d0a04a15 	stw	r2,-32472(gp)
   NIOS2_WRITE_IENABLE (alt_irq_active);
-   207a8:	d0a04117 	ldw	r2,-32508(gp)
-   207ac:	100170fa 	wrctl	ienable,r2
+   20940:	d0a04a17 	ldw	r2,-32472(gp)
+   20944:	100170fa 	wrctl	ienable,r2
   status &= ~NIOS2_STATUS_PIE_MSK;
   status |= (context & NIOS2_STATUS_PIE_MSK);
   
   NIOS2_WRITE_STATUS (status);
 #else
   NIOS2_WRITE_STATUS (context);
-   207b0:	2801703a 	wrctl	status,r5
-   207b4:	3801703a 	wrctl	status,r7
-   207b8:	0005883a 	mov	r2,zero
-   207bc:	f800283a 	ret
+   20948:	2801703a 	wrctl	status,r5
+   2094c:	3801703a 	wrctl	status,r7
+   20950:	0005883a 	mov	r2,zero
+   20954:	f800283a 	ret
  
 int alt_irq_register (alt_u32 id, 
                       void* context, 
                       alt_isr_func handler)
 {
   int rc = -EINVAL;  
-   207c0:	00bffa84 	movi	r2,-22
+   20958:	00bffa84 	movi	r2,-22
     rc = (handler) ? alt_irq_enable (id): alt_irq_disable (id);
 
     alt_irq_enable_all(status);
   }
   return rc; 
 }
-   207c4:	f800283a 	ret
+   2095c:	f800283a 	ret
 
-000207c8 <alt_load>:
+00020960 <alt_load>:
  * there is no bootloader, so this application is responsible for loading to
  * RAM any sections that are required.
  */  
 
 void alt_load (void)
 {
-   207c8:	deffff04 	addi	sp,sp,-4
-   207cc:	010000b4 	movhi	r4,2
-   207d0:	014000b4 	movhi	r5,2
-   207d4:	dfc00015 	stw	ra,0(sp)
-   207d8:	21029d04 	addi	r4,r4,2676
-   207dc:	2942d304 	addi	r5,r5,2892
+   20960:	deffff04 	addi	sp,sp,-4
+   20964:	010000b4 	movhi	r4,2
+   20968:	014000b4 	movhi	r5,2
+   2096c:	dfc00015 	stw	ra,0(sp)
+   20970:	21030304 	addi	r4,r4,3084
+   20974:	29433904 	addi	r5,r5,3300
 
 static void ALT_INLINE alt_load_section (alt_u32* from, 
                                          alt_u32* to, 
                                          alt_u32* end)
 {
   if (to != from)
-   207e0:	2140061e 	bne	r4,r5,207fc <alt_load+0x34>
-   207e4:	010000b4 	movhi	r4,2
-   207e8:	014000b4 	movhi	r5,2
-   207ec:	21000804 	addi	r4,r4,32
-   207f0:	29400804 	addi	r5,r5,32
-   207f4:	2140121e 	bne	r4,r5,20840 <alt_load+0x78>
-   207f8:	00000b06 	br	20828 <alt_load+0x60>
-   207fc:	00c000b4 	movhi	r3,2
-   20800:	18c2d304 	addi	r3,r3,2892
-   20804:	1907c83a 	sub	r3,r3,r4
-   20808:	0005883a 	mov	r2,zero
+   20978:	2140061e 	bne	r4,r5,20994 <alt_load+0x34>
+   2097c:	010000b4 	movhi	r4,2
+   20980:	014000b4 	movhi	r5,2
+   20984:	21000804 	addi	r4,r4,32
+   20988:	29400804 	addi	r5,r5,32
+   2098c:	2140121e 	bne	r4,r5,209d8 <alt_load+0x78>
+   20990:	00000b06 	br	209c0 <alt_load+0x60>
+   20994:	00c000b4 	movhi	r3,2
+   20998:	18c33904 	addi	r3,r3,3300
+   2099c:	1907c83a 	sub	r3,r3,r4
+   209a0:	0005883a 	mov	r2,zero
   {
     while( to != end )
-   2080c:	10fff526 	beq	r2,r3,207e4 <__alt_data_end+0xffff07e4>
+   209a4:	10fff526 	beq	r2,r3,2097c <__alt_data_end+0xffff097c>
     {
       *to++ = *from++;
-   20810:	114f883a 	add	r7,r2,r5
-   20814:	39c00017 	ldw	r7,0(r7)
-   20818:	110d883a 	add	r6,r2,r4
-   2081c:	10800104 	addi	r2,r2,4
-   20820:	31c00015 	stw	r7,0(r6)
-   20824:	003ff906 	br	2080c <__alt_data_end+0xffff080c>
-   20828:	010000b4 	movhi	r4,2
-   2082c:	014000b4 	movhi	r5,2
-   20830:	21028a04 	addi	r4,r4,2600
-   20834:	29428a04 	addi	r5,r5,2600
+   209a8:	114f883a 	add	r7,r2,r5
+   209ac:	39c00017 	ldw	r7,0(r7)
+   209b0:	110d883a 	add	r6,r2,r4
+   209b4:	10800104 	addi	r2,r2,4
+   209b8:	31c00015 	stw	r7,0(r6)
+   209bc:	003ff906 	br	209a4 <__alt_data_end+0xffff09a4>
+   209c0:	010000b4 	movhi	r4,2
+   209c4:	014000b4 	movhi	r5,2
+   209c8:	2102f004 	addi	r4,r4,3008
+   209cc:	2942f004 	addi	r5,r5,3008
 
 static void ALT_INLINE alt_load_section (alt_u32* from, 
                                          alt_u32* to, 
                                          alt_u32* end)
 {
   if (to != from)
-   20838:	2140101e 	bne	r4,r5,2087c <alt_load+0xb4>
-   2083c:	00000b06 	br	2086c <alt_load+0xa4>
-   20840:	00c000b4 	movhi	r3,2
-   20844:	18c06004 	addi	r3,r3,384
-   20848:	1907c83a 	sub	r3,r3,r4
-   2084c:	0005883a 	mov	r2,zero
+   209d0:	2140101e 	bne	r4,r5,20a14 <alt_load+0xb4>
+   209d4:	00000b06 	br	20a04 <alt_load+0xa4>
+   209d8:	00c000b4 	movhi	r3,2
+   209dc:	18c06004 	addi	r3,r3,384
+   209e0:	1907c83a 	sub	r3,r3,r4
+   209e4:	0005883a 	mov	r2,zero
   {
     while( to != end )
-   20850:	10fff526 	beq	r2,r3,20828 <__alt_data_end+0xffff0828>
+   209e8:	10fff526 	beq	r2,r3,209c0 <__alt_data_end+0xffff09c0>
     {
       *to++ = *from++;
-   20854:	114f883a 	add	r7,r2,r5
-   20858:	39c00017 	ldw	r7,0(r7)
-   2085c:	110d883a 	add	r6,r2,r4
-   20860:	10800104 	addi	r2,r2,4
-   20864:	31c00015 	stw	r7,0(r6)
-   20868:	003ff906 	br	20850 <__alt_data_end+0xffff0850>
+   209ec:	114f883a 	add	r7,r2,r5
+   209f0:	39c00017 	ldw	r7,0(r7)
+   209f4:	110d883a 	add	r6,r2,r4
+   209f8:	10800104 	addi	r2,r2,4
+   209fc:	31c00015 	stw	r7,0(r6)
+   20a00:	003ff906 	br	209e8 <__alt_data_end+0xffff09e8>
   
   /*
    * Now ensure that the caches are in synch.
    */
   
   alt_dcache_flush_all();
-   2086c:	00209300 	call	20930 <alt_dcache_flush_all>
+   20a04:	0020ac80 	call	20ac8 <alt_dcache_flush_all>
   alt_icache_flush_all();
 }
-   20870:	dfc00017 	ldw	ra,0(sp)
-   20874:	dec00104 	addi	sp,sp,4
+   20a08:	dfc00017 	ldw	ra,0(sp)
+   20a0c:	dec00104 	addi	sp,sp,4
   /*
    * Now ensure that the caches are in synch.
    */
   
   alt_dcache_flush_all();
   alt_icache_flush_all();
-   20878:	00209a81 	jmpi	209a8 <alt_icache_flush_all>
-   2087c:	00c000b4 	movhi	r3,2
-   20880:	18c29d04 	addi	r3,r3,2676
-   20884:	1907c83a 	sub	r3,r3,r4
+   20a10:	0020b401 	jmpi	20b40 <alt_icache_flush_all>
+   20a14:	00c000b4 	movhi	r3,2
+   20a18:	18c30304 	addi	r3,r3,3084
+   20a1c:	1907c83a 	sub	r3,r3,r4
 
 static void ALT_INLINE alt_load_section (alt_u32* from, 
                                          alt_u32* to, 
                                          alt_u32* end)
 {
   if (to != from)
-   20888:	0005883a 	mov	r2,zero
+   20a20:	0005883a 	mov	r2,zero
   {
     while( to != end )
-   2088c:	18bff726 	beq	r3,r2,2086c <__alt_data_end+0xffff086c>
+   20a24:	18bff726 	beq	r3,r2,20a04 <__alt_data_end+0xffff0a04>
     {
       *to++ = *from++;
-   20890:	114f883a 	add	r7,r2,r5
-   20894:	39c00017 	ldw	r7,0(r7)
-   20898:	110d883a 	add	r6,r2,r4
-   2089c:	10800104 	addi	r2,r2,4
-   208a0:	31c00015 	stw	r7,0(r6)
-   208a4:	003ff906 	br	2088c <__alt_data_end+0xffff088c>
+   20a28:	114f883a 	add	r7,r2,r5
+   20a2c:	39c00017 	ldw	r7,0(r7)
+   20a30:	110d883a 	add	r6,r2,r4
+   20a34:	10800104 	addi	r2,r2,4
+   20a38:	31c00015 	stw	r7,0(r6)
+   20a3c:	003ff906 	br	20a24 <__alt_data_end+0xffff0a24>
 
-000208a8 <alt_main>:
+00020a40 <alt_main>:
  * devices/filesystems/components in the system; and call the entry point for
  * the users application, i.e. main().
  */
 
 void alt_main (void)
 {
-   208a8:	deffff04 	addi	sp,sp,-4
+   20a40:	deffff04 	addi	sp,sp,-4
 #endif
 
   /* ALT LOG - please see HAL/sys/alt_log_printf.h for details */
   ALT_LOG_PRINT_BOOT("[alt_main.c] Entering alt_main, calling alt_irq_init.\r\n");
   /* Initialize the interrupt controller. */
   alt_irq_init (NULL);
-   208ac:	0009883a 	mov	r4,zero
+   20a44:	0009883a 	mov	r4,zero
  * devices/filesystems/components in the system; and call the entry point for
  * the users application, i.e. main().
  */
 
 void alt_main (void)
 {
-   208b0:	dfc00015 	stw	ra,0(sp)
+   20a48:	dfc00015 	stw	ra,0(sp)
 #endif
 
   /* ALT LOG - please see HAL/sys/alt_log_printf.h for details */
   ALT_LOG_PRINT_BOOT("[alt_main.c] Entering alt_main, calling alt_irq_init.\r\n");
   /* Initialize the interrupt controller. */
   alt_irq_init (NULL);
-   208b4:	00208d40 	call	208d4 <alt_irq_init>
+   20a4c:	0020a6c0 	call	20a6c <alt_irq_init>
   ALT_LOG_PRINT_BOOT("[alt_main.c] Done OS Init, calling alt_sem_create.\r\n");
   ALT_SEM_CREATE (&alt_fd_list_lock, 1);
 
   /* Initialize the device drivers/software components. */
   ALT_LOG_PRINT_BOOT("[alt_main.c] Calling alt_sys_init.\r\n");
   alt_sys_init();
-   208b8:	00208f40 	call	208f4 <alt_sys_init>
+   20a50:	0020a8c0 	call	20a8c <alt_sys_init>
    */
 
   ALT_LOG_PRINT_BOOT("[alt_main.c] Calling main.\r\n");
 
 #ifdef ALT_NO_EXIT
   main (alt_argc, alt_argv, alt_envp);
-   208bc:	d1a04217 	ldw	r6,-32504(gp)
-   208c0:	d1604317 	ldw	r5,-32500(gp)
-   208c4:	d1204417 	ldw	r4,-32496(gp)
+   20a54:	d1a04b17 	ldw	r6,-32468(gp)
+   20a58:	d1604c17 	ldw	r5,-32464(gp)
+   20a5c:	d1204d17 	ldw	r4,-32460(gp)
   close(STDOUT_FILENO);
   exit (result);
 #endif
 
   ALT_LOG_PRINT_BOOT("[alt_main.c] After main - we should not be here?.\r\n");
 }
-   208c8:	dfc00017 	ldw	ra,0(sp)
-   208cc:	dec00104 	addi	sp,sp,4
+   20a60:	dfc00017 	ldw	ra,0(sp)
+   20a64:	dec00104 	addi	sp,sp,4
    */
 
   ALT_LOG_PRINT_BOOT("[alt_main.c] Calling main.\r\n");
 
 #ifdef ALT_NO_EXIT
   main (alt_argc, alt_argv, alt_envp);
-   208d0:	00202ec1 	jmpi	202ec <main>
+   20a68:	002045c1 	jmpi	2045c <main>
 
-000208d4 <alt_irq_init>:
+00020a6c <alt_irq_init>:
  * The "base" parameter is ignored and only
  * present for backwards-compatibility.
  */
 
 void alt_irq_init ( const void* base )
 {
-   208d4:	deffff04 	addi	sp,sp,-4
-   208d8:	dfc00015 	stw	ra,0(sp)
+   20a6c:	deffff04 	addi	sp,sp,-4
+   20a70:	dfc00015 	stw	ra,0(sp)
     ALTERA_NIOS2_GEN2_IRQ_INIT ( CPU, cpu);
-   208dc:	00209ac0 	call	209ac <altera_nios2_gen2_irq_init>
+   20a74:	0020b440 	call	20b44 <altera_nios2_gen2_irq_init>
  * alt_irq_cpu_enable_interrupts() enables the CPU to start taking interrupts.
  */
 static ALT_INLINE void ALT_ALWAYS_INLINE 
        alt_irq_cpu_enable_interrupts (void)
 {
     NIOS2_WRITE_STATUS(NIOS2_STATUS_PIE_MSK
-   208e0:	00800044 	movi	r2,1
-   208e4:	1001703a 	wrctl	status,r2
+   20a78:	00800044 	movi	r2,1
+   20a7c:	1001703a 	wrctl	status,r2
     alt_irq_cpu_enable_interrupts();
 }
-   208e8:	dfc00017 	ldw	ra,0(sp)
-   208ec:	dec00104 	addi	sp,sp,4
-   208f0:	f800283a 	ret
+   20a80:	dfc00017 	ldw	ra,0(sp)
+   20a84:	dec00104 	addi	sp,sp,4
+   20a88:	f800283a 	ret
 
-000208f4 <alt_sys_init>:
+00020a8c <alt_sys_init>:
  * Initialize the non-interrupt controller devices.
  * Called after alt_irq_init().
  */
 
 void alt_sys_init( void )
 {
-   208f4:	defffe04 	addi	sp,sp,-8
-   208f8:	dc000015 	stw	r16,0(sp)
+   20a8c:	defffe04 	addi	sp,sp,-8
+   20a90:	dc000015 	stw	r16,0(sp)
 
 static ALT_INLINE int alt_dev_reg (alt_dev* dev)
 {
   extern alt_llist alt_dev_list;
 
   return alt_dev_llist_insert ((alt_dev_llist*) dev, &alt_dev_list);
-   208fc:	010000b4 	movhi	r4,2
-   20900:	d4200304 	addi	r16,gp,-32756
-   20904:	800b883a 	mov	r5,r16
-   20908:	2102a904 	addi	r4,r4,2724
-   2090c:	dfc00115 	stw	ra,4(sp)
-   20910:	002093c0 	call	2093c <alt_dev_llist_insert>
-   20914:	010000b4 	movhi	r4,2
-   20918:	800b883a 	mov	r5,r16
-   2091c:	21029d04 	addi	r4,r4,2676
+   20a94:	010000b4 	movhi	r4,2
+   20a98:	d4200304 	addi	r16,gp,-32756
+   20a9c:	800b883a 	mov	r5,r16
+   20aa0:	21030f04 	addi	r4,r4,3132
+   20aa4:	dfc00115 	stw	ra,4(sp)
+   20aa8:	0020ad40 	call	20ad4 <alt_dev_llist_insert>
+   20aac:	010000b4 	movhi	r4,2
+   20ab0:	800b883a 	mov	r5,r16
+   20ab4:	21030304 	addi	r4,r4,3084
     ALTERA_AVALON_TIMER_INIT ( SYS_TIMER, sys_timer);
     ALTERA_AVALON_JTAG_UART_INIT ( JTAG_UART, jtag_uart);
     ALTERA_UP_AVALON_AUDIO_AND_VIDEO_CONFIG_INIT ( AUDIO_AND_VIDEO_CONFIG_0, audio_and_video_config_0);
     ALTERA_UP_AVALON_AUDIO_INIT ( AUDIO_0, audio_0);
 }
-   20920:	dfc00117 	ldw	ra,4(sp)
-   20924:	dc000017 	ldw	r16,0(sp)
-   20928:	dec00204 	addi	sp,sp,8
-   2092c:	002093c1 	jmpi	2093c <alt_dev_llist_insert>
+   20ab8:	dfc00117 	ldw	ra,4(sp)
+   20abc:	dc000017 	ldw	r16,0(sp)
+   20ac0:	dec00204 	addi	sp,sp,8
+   20ac4:	0020ad41 	jmpi	20ad4 <alt_dev_llist_insert>
 
-00020930 <alt_dcache_flush_all>:
+00020ac8 <alt_dcache_flush_all>:
 /*
  * alt_dcache_flush_all() is called to flush the entire data cache.
  */
 
 void alt_dcache_flush_all (void)
 {
-   20930:	f800283a 	ret
+   20ac8:	f800283a 	ret
 
-00020934 <alt_dev_null_write>:
+00020acc <alt_dev_null_write>:
  */
 
 static int alt_dev_null_write (alt_fd* fd, const char* ptr, int len)
 {
   return len;
 }
-   20934:	3005883a 	mov	r2,r6
-   20938:	f800283a 	ret
+   20acc:	3005883a 	mov	r2,r6
+   20ad0:	f800283a 	ret
 
-0002093c <alt_dev_llist_insert>:
+00020ad4 <alt_dev_llist_insert>:
 {
   /*
    * check that the device exists, and that it has a valid name.
    */
 
   if (!dev || !dev->name)
-   2093c:	20000226 	beq	r4,zero,20948 <alt_dev_llist_insert+0xc>
-   20940:	20800217 	ldw	r2,8(r4)
-   20944:	1000101e 	bne	r2,zero,20988 <alt_dev_llist_insert+0x4c>
+   20ad4:	20000226 	beq	r4,zero,20ae0 <alt_dev_llist_insert+0xc>
+   20ad8:	20800217 	ldw	r2,8(r4)
+   20adc:	1000101e 	bne	r2,zero,20b20 <alt_dev_llist_insert+0x4c>
 
 extern int errno;
 
 static ALT_INLINE int* alt_get_errno(void)
 {
   return ((alt_errno) ? alt_errno() : &errno);
-   20948:	d0a00717 	ldw	r2,-32740(gp)
-   2094c:	10000926 	beq	r2,zero,20974 <alt_dev_llist_insert+0x38>
+   20ae0:	d0a00717 	ldw	r2,-32740(gp)
+   20ae4:	10000926 	beq	r2,zero,20b0c <alt_dev_llist_insert+0x38>
 /*
  *
  */
 
 int alt_dev_llist_insert (alt_dev_llist* dev, alt_llist* list)
 {
-   20950:	deffff04 	addi	sp,sp,-4
-   20954:	dfc00015 	stw	ra,0(sp)
-   20958:	103ee83a 	callr	r2
+   20ae8:	deffff04 	addi	sp,sp,-4
+   20aec:	dfc00015 	stw	ra,0(sp)
+   20af0:	103ee83a 	callr	r2
    * check that the device exists, and that it has a valid name.
    */
 
   if (!dev || !dev->name)
   {
     ALT_ERRNO = EINVAL;
-   2095c:	00c00584 	movi	r3,22
-   20960:	10c00015 	stw	r3,0(r2)
+   20af4:	00c00584 	movi	r3,22
+   20af8:	10c00015 	stw	r3,0(r2)
     return -EINVAL;
-   20964:	00bffa84 	movi	r2,-22
+   20afc:	00bffa84 	movi	r2,-22
    */
   
   alt_llist_insert(list, &dev->llist);
 
   return 0;  
 }
-   20968:	dfc00017 	ldw	ra,0(sp)
-   2096c:	dec00104 	addi	sp,sp,4
-   20970:	f800283a 	ret
-   20974:	d0a04604 	addi	r2,gp,-32488
+   20b00:	dfc00017 	ldw	ra,0(sp)
+   20b04:	dec00104 	addi	sp,sp,4
+   20b08:	f800283a 	ret
+   20b0c:	d0a04f04 	addi	r2,gp,-32452
    * check that the device exists, and that it has a valid name.
    */
 
   if (!dev || !dev->name)
   {
     ALT_ERRNO = EINVAL;
-   20978:	00c00584 	movi	r3,22
-   2097c:	10c00015 	stw	r3,0(r2)
+   20b10:	00c00584 	movi	r3,22
+   20b14:	10c00015 	stw	r3,0(r2)
     return -EINVAL;
-   20980:	00bffa84 	movi	r2,-22
+   20b18:	00bffa84 	movi	r2,-22
    */
   
   alt_llist_insert(list, &dev->llist);
 
   return 0;  
 }
-   20984:	f800283a 	ret
+   20b1c:	f800283a 	ret
 
 static ALT_INLINE void ALT_ALWAYS_INLINE alt_llist_insert(alt_llist* list, 
                 alt_llist* entry)
 {
   entry->previous = list;
   entry->next     = list->next;
-   20988:	28800017 	ldw	r2,0(r5)
+   20b20:	28800017 	ldw	r2,0(r5)
  */
 
 static ALT_INLINE void ALT_ALWAYS_INLINE alt_llist_insert(alt_llist* list, 
                 alt_llist* entry)
 {
   entry->previous = list;
-   2098c:	21400115 	stw	r5,4(r4)
+   20b24:	21400115 	stw	r5,4(r4)
   entry->next     = list->next;
-   20990:	20800015 	stw	r2,0(r4)
+   20b28:	20800015 	stw	r2,0(r4)
 
   list->next->previous = entry;
-   20994:	28800017 	ldw	r2,0(r5)
-   20998:	11000115 	stw	r4,4(r2)
+   20b2c:	28800017 	ldw	r2,0(r5)
+   20b30:	11000115 	stw	r4,4(r2)
   list->next           = entry;
-   2099c:	29000015 	stw	r4,0(r5)
+   20b34:	29000015 	stw	r4,0(r5)
    * register the device.
    */
   
   alt_llist_insert(list, &dev->llist);
 
   return 0;  
-   209a0:	0005883a 	mov	r2,zero
-   209a4:	f800283a 	ret
+   20b38:	0005883a 	mov	r2,zero
+   20b3c:	f800283a 	ret
 
-000209a8 <alt_icache_flush_all>:
+00020b40 <alt_icache_flush_all>:
 /*
  * alt_icache_flush_all() is called to flush the entire instruction cache.
  */
 
 void alt_icache_flush_all (void)
 {
-   209a8:	f800283a 	ret
+   20b40:	f800283a 	ret
 
-000209ac <altera_nios2_gen2_irq_init>:
+00020b44 <altera_nios2_gen2_irq_init>:
  * To initialize the internal interrupt controller, just clear the IENABLE
  * register so that all possible IRQs are disabled.
  */
 void altera_nios2_gen2_irq_init(void) 
 {
     NIOS2_WRITE_IENABLE(0);
-   209ac:	000170fa 	wrctl	ienable,zero
-   209b0:	f800283a 	ret
+   20b44:	000170fa 	wrctl	ienable,zero
+   20b48:	f800283a 	ret
 
-000209b4 <alt_exception_cause_generated_bad_addr>:
+00020b4c <alt_exception_cause_generated_bad_addr>:
  *         0: BADADDR is not valid
  */
 int 
 alt_exception_cause_generated_bad_addr(alt_exception_cause cause)
 {
   switch (cause) {
-   209b4:	213ffe84 	addi	r4,r4,-6
-   209b8:	008003c4 	movi	r2,15
-   209bc:	11001636 	bltu	r2,r4,20a18 <alt_exception_cause_generated_bad_addr+0x64>
-   209c0:	200890ba 	slli	r4,r4,2
-   209c4:	008000b4 	movhi	r2,2
-   209c8:	10827604 	addi	r2,r2,2520
-   209cc:	2089883a 	add	r4,r4,r2
-   209d0:	20800017 	ldw	r2,0(r4)
-   209d4:	1000683a 	jmp	r2
-   209d8:	00020a20 	cmpeqi	zero,zero,2088
-   209dc:	00020a20 	cmpeqi	zero,zero,2088
-   209e0:	00020a18 	cmpnei	zero,zero,2088
-   209e4:	00020a18 	cmpnei	zero,zero,2088
-   209e8:	00020a18 	cmpnei	zero,zero,2088
-   209ec:	00020a20 	cmpeqi	zero,zero,2088
-   209f0:	00020a18 	cmpnei	zero,zero,2088
-   209f4:	00020a18 	cmpnei	zero,zero,2088
-   209f8:	00020a20 	cmpeqi	zero,zero,2088
-   209fc:	00020a20 	cmpeqi	zero,zero,2088
-   20a00:	00020a18 	cmpnei	zero,zero,2088
-   20a04:	00020a20 	cmpeqi	zero,zero,2088
-   20a08:	00020a18 	cmpnei	zero,zero,2088
-   20a0c:	00020a18 	cmpnei	zero,zero,2088
-   20a10:	00020a18 	cmpnei	zero,zero,2088
-   20a14:	00020a20 	cmpeqi	zero,zero,2088
+   20b4c:	213ffe84 	addi	r4,r4,-6
+   20b50:	008003c4 	movi	r2,15
+   20b54:	11001636 	bltu	r2,r4,20bb0 <alt_exception_cause_generated_bad_addr+0x64>
+   20b58:	200890ba 	slli	r4,r4,2
+   20b5c:	008000b4 	movhi	r2,2
+   20b60:	1082dc04 	addi	r2,r2,2928
+   20b64:	2089883a 	add	r4,r4,r2
+   20b68:	20800017 	ldw	r2,0(r4)
+   20b6c:	1000683a 	jmp	r2
+   20b70:	00020bb8 	rdprs	zero,zero,2094
+   20b74:	00020bb8 	rdprs	zero,zero,2094
+   20b78:	00020bb0 	cmpltui	zero,zero,2094
+   20b7c:	00020bb0 	cmpltui	zero,zero,2094
+   20b80:	00020bb0 	cmpltui	zero,zero,2094
+   20b84:	00020bb8 	rdprs	zero,zero,2094
+   20b88:	00020bb0 	cmpltui	zero,zero,2094
+   20b8c:	00020bb0 	cmpltui	zero,zero,2094
+   20b90:	00020bb8 	rdprs	zero,zero,2094
+   20b94:	00020bb8 	rdprs	zero,zero,2094
+   20b98:	00020bb0 	cmpltui	zero,zero,2094
+   20b9c:	00020bb8 	rdprs	zero,zero,2094
+   20ba0:	00020bb0 	cmpltui	zero,zero,2094
+   20ba4:	00020bb0 	cmpltui	zero,zero,2094
+   20ba8:	00020bb0 	cmpltui	zero,zero,2094
+   20bac:	00020bb8 	rdprs	zero,zero,2094
   case NIOS2_EXCEPTION_ECC_DATA_ERR:
     return 1;
 
   case NIOS2_EXCEPTION_TLB_MISS:
   case NIOS2_EXCEPTION_ECC_TLB_ERR:
     return 0;
-   20a18:	0005883a 	mov	r2,zero
-   20a1c:	f800283a 	ret
+   20bb0:	0005883a 	mov	r2,zero
+   20bb4:	f800283a 	ret
   case NIOS2_EXCEPTION_MISALIGNED_TARGET_PC:
   case NIOS2_EXCEPTION_TLB_READ_PERM_VIOLATION:
   case NIOS2_EXCEPTION_TLB_WRITE_PERM_VIOLATION:
   case NIOS2_EXCEPTION_MPU_DATA_REGION_VIOLATION:
   case NIOS2_EXCEPTION_ECC_DATA_ERR:
     return 1;
-   20a20:	00800044 	movi	r2,1
+   20bb8:	00800044 	movi	r2,1
     return 0;
 
   default:
     return 0;
   }
 }
-   20a24:	f800283a 	ret
+   20bbc:	f800283a 	ret
