@@ -62,6 +62,16 @@
 // la lentitud/ráfagas de la SD: 256K frames = ~5.5 s a 48kHz = 1 MB en DDR3 (cacheado, rápido).
 #define RING_FRAMES (256 * 1024)
 
+// --- VGA Text Controller (mismo LW bridge, offset 0x10000 -> 0xFF210000) ---
+// Celda = word en (fila*80+col): [15:12]=bg [11:8]=fg [7:0]=ASCII. Paleta 16 colores (0 negro..15 blanco).
+#define VGA_OFFSET 0x10000
+#define VGA_COLS   40            // el controlador renderiza 40x8 chars (esquina sup-izq, 320x128 px)
+#define VGA_ROWS   8
+#define C_BLUE      1
+#define C_GREEN    10
+#define C_YELLOW   14
+#define C_WHITE    15
+
 static char    playlist[MAX_TRACKS][MAX_PATH];
 static int     n_tracks = 0;
 static int16_t chunk[CHUNK_FRAMES * 2]; // L,R intercalados (lo usa SOLO el hilo lector)
@@ -73,46 +83,94 @@ static volatile uint32_t ring_tail = 0;       // donde lee el alimentador
 static volatile int      reader_stop = 0;     // el alimentador pide parar al lector
 static volatile int      reader_done = 0;     // el lector terminó el archivo (EOF)
 
+static volatile uint32_t *vga = 0;   // base del controlador VGA (se setea en main)
+
+static void vga_putc(int row, int col, char c, int fg, int bg) {
+    if (row < 0 || row >= VGA_ROWS || col < 0 || col >= VGA_COLS) return;
+    vga[row * VGA_COLS + col] = ((uint32_t)(bg & 0xF) << 12) |
+                                ((uint32_t)(fg & 0xF) << 8)  | (uint8_t)c;
+}
+static void vga_print(int row, int col, const char *s, int fg, int bg) {
+    for (int i = 0; s[i] && (col + i) < VGA_COLS; i++) vga_putc(row, col + i, s[i], fg, bg);
+}
+static void vga_clear(int bg) {
+    for (int r = 0; r < VGA_ROWS; r++)
+        for (int c = 0; c < VGA_COLS; c++) vga_putc(r, c, ' ', C_WHITE, bg);
+}
+// Pinta "ahora suena": titulo/artista/album + numero de cancion. Si falta un tag, usa el filename.
+static void vga_show_track(const char *title, const char *artist, const char *album,
+                           const char *fname, int num, int total) {
+    char line[VGA_COLS + 1];
+    const char *base = strrchr(fname, '/');
+    base = base ? base + 1 : fname;
+    // Solo 40x8 chars (esquina sup-izq). Layout compacto: filas 0..7, cols 0..39.
+    vga_clear(C_BLUE);
+    vga_print(0, 0, "= Reproductor de Audio =", C_YELLOW, C_BLUE);
+    snprintf(line, sizeof line, "Titulo : %s", title[0]  ? title  : base);
+    vga_print(2, 0, line, C_WHITE, C_BLUE);
+    snprintf(line, sizeof line, "Artista: %s", artist[0] ? artist : "Desconocido");
+    vga_print(3, 0, line, C_WHITE, C_BLUE);
+    snprintf(line, sizeof line, "Album  : %s", album[0]  ? album  : "Desconocido");
+    vga_print(4, 0, line, C_WHITE, C_BLUE);
+    snprintf(line, sizeof line, "Cancion %d/%d", num, total);
+    vga_print(6, 0, line, C_GREEN, C_BLUE);
+}
+
 typedef struct {
     FILE    *wav;
     uint16_t channels;
     uint32_t total_frames;
 } reader_arg_t;
 
+// Parsea fmt + data + metadata (LIST/INFO: INAM=titulo, IART=artista, IPRD=album).
+// Recorre chunks por tamaño (robusto). Deja el archivo posicionado al inicio del PCM.
+// title/artist/album deben venir inicializados a "" por el caller.
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
-                     uint16_t *bits_out, uint32_t *data_size_out) {
+                     uint16_t *bits_out, uint32_t *data_size_out,
+                     char *title, char *artist, char *album) {
     char tag[4];
-    uint32_t u32;
+    uint32_t csize, u32;
     uint16_t u16;
 
-    fread(tag, 4, 1, f);
-    if (memcmp(tag, "RIFF", 4)) return -1;
+    if (fread(tag, 4, 1, f) != 1 || memcmp(tag, "RIFF", 4)) return -1;
     fread(&u32, 4, 1, f);
-    fread(tag, 4, 1, f);
-    if (memcmp(tag, "WAVE", 4)) return -1;
+    if (fread(tag, 4, 1, f) != 1 || memcmp(tag, "WAVE", 4)) return -1;
 
-    // buscar chunk fmt
-    while (!feof(f)) {
-        fread(tag, 4, 1, f);
-        fread(&u32, 4, 1, f);
+    int have_fmt = 0;
+    while (fread(tag, 4, 1, f) == 1 && fread(&csize, 4, 1, f) == 1) {
+        long next = ftell(f) + csize + (csize & 1);   // siguiente chunk (padding a par)
+
         if (memcmp(tag, "fmt ", 4) == 0) {
-            fread(&u16, 2, 1, f);                   // audio format (1=PCM)
+            fread(&u16, 2, 1, f);                      // audio format (1=PCM)
             fread(channels_out, 2, 1, f);
             fread(sample_rate_out, 4, 1, f);
-            fread(&u32, 4, 1, f);                   // byte rate
-            fread(&u16, 2, 1, f);                   // block align
+            fread(&u32, 4, 1, f);                      // byte rate
+            fread(&u16, 2, 1, f);                      // block align
             fread(bits_out, 2, 1, f);
-            break;
+            have_fmt = 1;
         }
-        fseek(f, u32, SEEK_CUR);
-    }
-
-    // buscar chunk data (deja el archivo posicionado al inicio del PCM)
-    while (!feof(f)) {
-        fread(tag, 4, 1, f);
-        fread(data_size_out, 4, 1, f);
-        if (memcmp(tag, "data", 4) == 0) return 0;
-        fseek(f, *data_size_out, SEEK_CUR);
+        else if (memcmp(tag, "data", 4) == 0) {
+            *data_size_out = csize;
+            return have_fmt ? 0 : -1;                  // posicionado al inicio del PCM
+        }
+        else if (memcmp(tag, "LIST", 4) == 0) {
+            char lt[4];
+            fread(lt, 4, 1, f);
+            if (memcmp(lt, "INFO", 4) == 0) {
+                while (ftell(f) + 8 <= next) {
+                    char sid[4]; uint32_t ss;
+                    fread(sid, 4, 1, f); fread(&ss, 4, 1, f);
+                    uint32_t n = ss < 63 ? ss : 63;
+                    char val[64];
+                    fread(val, 1, n, f); val[n] = '\0';
+                    if      (!memcmp(sid, "INAM", 4)) strncpy(title,  val, 63);
+                    else if (!memcmp(sid, "IART", 4)) strncpy(artist, val, 63);
+                    else if (!memcmp(sid, "IPRD", 4)) strncpy(album,  val, 63);
+                    fseek(f, (ss - n) + (ss & 1), SEEK_CUR);   // resto del valor + padding
+                }
+            }
+        }
+        fseek(f, next, SEEK_SET);                      // saltar al siguiente chunk
     }
     return -1;
 }
@@ -182,13 +240,15 @@ static void *reader_thread(void *arg) {
 //   REQ_NONE(0) -> termino sola (auto-siguiente)
 //   REQ_NEXT(1) -> el NIOS pidio siguiente
 //   REQ_PREV(2) -> el NIOS pidio anterior
-static int play_track(volatile uint32_t *sh, const char *fname) {
+static int play_track(volatile uint32_t *sh, const char *fname, int num, int total) {
     FILE *wav = fopen(fname, "rb");
     if (!wav) { perror("fopen"); return REQ_NEXT; }   // si falla, saltar
 
     uint16_t channels, bits;
     uint32_t sample_rate, data_size;
-    if (parse_wav(wav, &channels, &sample_rate, &bits, &data_size) < 0 || bits != 16) {
+    char title[64] = {0}, artist[64] = {0}, album[64] = {0};
+    if (parse_wav(wav, &channels, &sample_rate, &bits, &data_size,
+                  title, artist, album) < 0 || bits != 16) {
         fprintf(stderr, "WAV no soportado (no 16-bit?): %s\n", fname);
         fclose(wav); return REQ_NEXT;
     }
@@ -203,6 +263,7 @@ static int play_track(volatile uint32_t *sh, const char *fname) {
     sh[IDX_CMD]  = CMD_PLAY;
 
     printf("Reproduciendo: %s (%u Hz, %u ch)\n", fname, sample_rate, channels);
+    vga_show_track(title, artist, album, fname, num, total);   // metadata en la pantalla VGA
 
     // --- arrancar el hilo lector (SD -> ring de RAM) ---
     reader_stop = 0;
@@ -279,6 +340,7 @@ int main(int argc, char *argv[]) {
     if (lw == MAP_FAILED) { perror("mmap"); close(fd); return 1; }
 
     volatile uint32_t *sh = (volatile uint32_t *)((char *)lw + SHARED_OFFSET);
+    vga = (volatile uint32_t *)((char *)lw + VGA_OFFSET);   // VGA en el mismo mapeo (0xFF210000)
 
     sh[IDX_CMD] = CMD_IDLE;
     sh[IDX_REQ] = REQ_NONE;
@@ -286,7 +348,7 @@ int main(int argc, char *argv[]) {
     // Reproduccion continua: avanza solo al terminar, o salta con next/prev del NIOS
     int idx = 0;
     while (1) {
-        int r = play_track(sh, playlist[idx]);
+        int r = play_track(sh, playlist[idx], idx + 1, n_tracks);
         if (r == REQ_PREV) idx = (idx - 1 + n_tracks) % n_tracks;
         else               idx = (idx + 1) % n_tracks;   // REQ_NEXT o fin natural
     }
