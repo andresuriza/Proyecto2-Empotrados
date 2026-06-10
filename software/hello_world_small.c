@@ -143,21 +143,27 @@ int main(void) {
             }
 
             uint32_t head = sh[IDX_HEAD];
-            if (!paused && head != tail) {   // en pausa: no drena -> buffer se llena -> ARM se frena
-                // espacio en FIFO? si algun canal esta lleno, reintentar (no bloquea)
-                uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) continue;
+            if (!paused) {   // en pausa: no drena -> buffer se llena -> ARM se frena
+                // Drenar TODAS las muestras disponibles de un saque mientras haya espacio en el
+                // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
+                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
+                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
+                while (head != tail) {
+                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
+                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
 
-                // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                uint32_t packed = sh[BUF_WORD_START + tail];
-                int32_t left  = (int32_t)(int16_t)(packed >> 16);
-                int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                    uint32_t packed = sh[BUF_WORD_START + tail];
+                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
+                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
-                IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-                IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
+                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
+                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
 
-                tail = (tail + 1) % BUF_WORDS;
-                sh[IDX_TAIL] = tail;
+                    if (++tail >= BUF_WORDS) tail = 0;   // sin modulo (division)
+                }
+                sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
             }
 
         } else if (cmd == 2) {
