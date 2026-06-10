@@ -8,6 +8,14 @@
 //   sh[3]=REQ (NIOS->ARM): 0 nada, 1 next, 2 prev  <-- los botones del NIOS escriben aqui
 //   La PAUSA la maneja el NIOS (deja de drenar -> backpressure frena al ARM). No requiere nada aqui.
 //
+// AUDIO SIN CORTES (doble-buffer): un HILO LECTOR lee la SD a un ring grande en RAM, y el
+// bucle ALIMENTADOR saca del ring y escribe a la shared_mem (gateado por el NIOS = pitch 48kHz).
+// Asi la latencia/ráfagas de la SD NO frenan el feed -> no hay underrun a los pocos segundos.
+//
+// Compilar (necesita pthreads):
+//   arm-linux-gnueabihf-gcc -O2 -static -pthread -o hw_test_list HPS_code/hw_test_list.c
+//   (o nativo en la placa:  gcc -O2 -pthread -o hw_test_list hw_test_list.c)
+//
 // Uso:  ./hw_test_list [carpeta]     (sin argumento usa la carpeta actual ".")
 
 #include <fcntl.h>
@@ -17,6 +25,7 @@
 #include <string.h>
 #include <strings.h>    // strcasecmp
 #include <dirent.h>     // opendir/readdir
+#include <pthread.h>    // hilo lector
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -38,7 +47,7 @@
 #define REQ_NEXT    1
 #define REQ_PREV    2
 
-// Buffer circular
+// Buffer circular en shared_mem (lo drena el NIOS)
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
@@ -46,13 +55,29 @@
 #define MAX_TRACKS  64
 #define MAX_PATH    512
 
-// Lectura por bloques: leer de a 2 bytes es muy lento y el ARM se atrasa de 48kHz
-// (el buffer se vacia y el audio baja de tono hacia el final). Leemos chunks grandes.
+// Tamaño del bloque que el lector pide a la SD de una vez.
 #define CHUNK_FRAMES 2048               // debe ser < BUF_WORDS (16320)
+
+// Ring de RAM entre el lector (SD) y el alimentador (shared_mem). Grande para absorber
+// la lentitud/ráfagas de la SD: 256K frames = ~5.5 s a 48kHz = 1 MB en DDR3 (cacheado, rápido).
+#define RING_FRAMES (256 * 1024)
 
 static char    playlist[MAX_TRACKS][MAX_PATH];
 static int     n_tracks = 0;
-static int16_t chunk[CHUNK_FRAMES * 2]; // L,R intercalados (o mono)
+static int16_t chunk[CHUNK_FRAMES * 2]; // L,R intercalados (lo usa SOLO el hilo lector)
+
+// --- ring de RAM (SPSC: lector escribe head, alimentador escribe tail) ---
+static uint32_t          ring[RING_FRAMES];   // frames ya empacados (L<<16 | R)
+static volatile uint32_t ring_head = 0;       // donde escribe el lector
+static volatile uint32_t ring_tail = 0;       // donde lee el alimentador
+static volatile int      reader_stop = 0;     // el alimentador pide parar al lector
+static volatile int      reader_done = 0;     // el lector terminó el archivo (EOF)
+
+typedef struct {
+    FILE    *wav;
+    uint16_t channels;
+    uint32_t total_frames;
+} reader_arg_t;
 
 static int parse_wav(FILE *f, uint16_t *channels_out, uint32_t *sample_rate_out,
                      uint16_t *bits_out, uint32_t *data_size_out) {
@@ -116,6 +141,43 @@ static int scan_wavs(const char *dir) {
     return n_tracks;
 }
 
+// HILO LECTOR: SD -> ring de RAM. No para nunca de leer (salvo que el ring se llene o
+// se le pida parar). Aisla al alimentador de la latencia de la SD.
+static void *reader_thread(void *arg) {
+    reader_arg_t *ra = (reader_arg_t *)arg;
+    uint32_t remaining   = ra->total_frames;
+    uint32_t frame_bytes = ra->channels * 2;
+
+    while (remaining > 0 && !reader_stop) {
+        uint32_t want = (remaining < CHUNK_FRAMES) ? remaining : CHUNK_FRAMES;
+
+        // esperar a que haya lugar en el ring para 'want' frames
+        while (!reader_stop) {
+            uint32_t used = (ring_head - ring_tail + RING_FRAMES) % RING_FRAMES;
+            if ((RING_FRAMES - 1 - used) >= want) break;
+            usleep(1000);
+        }
+        if (reader_stop) break;
+
+        size_t got = fread(chunk, frame_bytes, want, ra->wav);
+        if (got == 0) break;   // EOF
+
+        uint32_t h = ring_head;
+        for (size_t j = 0; j < got; j++) {
+            int16_t sl, sr;
+            if (ra->channels == 2) { sl = chunk[2 * j]; sr = chunk[2 * j + 1]; }
+            else                   { sl = chunk[j];     sr = sl; }   // mono -> duplicar
+            ring[h] = ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
+            h = (h + 1) % RING_FRAMES;
+        }
+        __sync_synchronize();   // los datos del ring deben verse ANTES de publicar head
+        ring_head = h;
+        remaining -= got;
+    }
+    reader_done = 1;
+    return NULL;
+}
+
 // Reproduce una pista. Devuelve:
 //   REQ_NONE(0) -> termino sola (auto-siguiente)
 //   REQ_NEXT(1) -> el NIOS pidio siguiente
@@ -142,56 +204,60 @@ static int play_track(volatile uint32_t *sh, const char *fname) {
 
     printf("Reproduciendo: %s (%u Hz, %u ch)\n", fname, sample_rate, channels);
 
-    uint32_t total_frames = data_size / (channels * 2);
-    uint32_t frame_bytes  = channels * 2;
-    uint32_t remaining    = total_frames;
+    // --- arrancar el hilo lector (SD -> ring de RAM) ---
+    reader_stop = 0;
+    reader_done = 0;
+    ring_head = 0;
+    ring_tail = 0;
+    reader_arg_t ra = { wav, channels, data_size / (channels * 2) };
+    pthread_t tid;
+    pthread_create(&tid, NULL, reader_thread, &ra);
 
-    while (remaining > 0) {
-        // leer un bloque grande de una sola vez (clave para no atrasarse de 48kHz)
-        uint32_t want = (remaining < CHUNK_FRAMES) ? remaining : CHUNK_FRAMES;
-        size_t   got  = fread(chunk, frame_bytes, want, wav);
-        if (got == 0) break;   // EOF inesperado
+    int      ret = REQ_NONE;
+    uint32_t pub = 0;        // cada cuanto publicar HEAD al bridge
 
-        for (size_t j = 0; j < got; j++) {
-            int16_t sl, sr;
-            if (channels == 2) { sl = chunk[2 * j]; sr = chunk[2 * j + 1]; }
-            else               { sl = chunk[j];     sr = sl; }   // mono -> duplicar
+    // --- bucle ALIMENTADOR (ring de RAM -> shared_mem). Igual que antes pero
+    //     sacando del ring en vez de leer la SD aca. Pitch = NIOS = 48kHz. ---
+    for (;;) {
+        uint32_t rh = ring_head;
+        __sync_synchronize();   // ver los datos que el lector escribió antes de publicar head
 
-            uint32_t packed = ((uint32_t)(uint16_t)sl << 16) | (uint16_t)sr;
+        if (ring_tail == rh) {              // ring vacío en este instante
+            if (reader_done) break;         // se acabó la canción -> fin natural
+            if (sh[IDX_REQ] != REQ_NONE) { ret = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE; goto stop; }
+            continue;                       // el lector se está poniendo al día
+        }
+
+        while (ring_tail != rh) {
+            uint32_t packed = ring[ring_tail];
 
             // backpressure: esperar espacio, romper si hay peticion (incluye pausa via NIOS)
             uint32_t next = (head + 1) % BUF_WORDS;
             while (next == sh[IDX_TAIL]) {
-                if (sh[IDX_REQ] != REQ_NONE) {
-                    int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
-                    fclose(wav); return r;
-                }
+                if (sh[IDX_REQ] != REQ_NONE) { ret = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE; goto stop; }
             }
 
             sh[BUF_WORD_START + head] = packed;
             head = next;
-        }
+            ring_tail = (ring_tail + 1) % RING_FRAMES;
 
-        sh[IDX_HEAD] = head;       // publicar la cabeza 1 vez por bloque (menos escrituras al bridge)
-        remaining   -= got;
-
-        // peticion de control entre bloques?
-        if (sh[IDX_REQ] != REQ_NONE) {
-            int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
-            fclose(wav); return r;
+            // publicar HEAD seguido (512 < BUF_WORDS) para que el NIOS siga drenando
+            if (++pub >= 512) { sh[IDX_HEAD] = head; pub = 0; }
         }
+        sh[IDX_HEAD] = head;   // publicar la cabeza al terminar el lote disponible
     }
 
     // fin natural: esperar a que el NIOS drene lo que queda (no cortar el final)
+    sh[IDX_HEAD] = head;
     while (sh[IDX_TAIL] != head) {
-        if (sh[IDX_REQ] != REQ_NONE) {
-            int r = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE;
-            fclose(wav); return r;
-        }
+        if (sh[IDX_REQ] != REQ_NONE) { ret = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE; break; }
     }
 
+stop:
+    reader_stop = 1;
+    pthread_join(tid, NULL);   // espera a que el lector salga (a lo sumo un fread)
     fclose(wav);
-    return REQ_NONE;   // -> auto-siguiente
+    return ret;
 }
 
 int main(int argc, char *argv[]) {
