@@ -56,6 +56,7 @@
 !*.qsys
 !/software
 !/HPS_code
+/SoftwareARM/HANDOFF.md 
 !/SoftwareARM
 ## tbd
 
