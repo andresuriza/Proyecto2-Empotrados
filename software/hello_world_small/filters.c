@@ -55,6 +55,7 @@ static void filter_bandpass(int32_t *left, int32_t *right) {
     int32_t hi = ma(bph_b, &bph_s, &bph_i, BPH_N, BPH_SH, m);
     int32_t lo = ma(bpl_b, &bpl_s, &bpl_i, BPL_N, BPL_SH, m);
     int32_t bp = hi - lo;
+    bp -= bp >> 2;          // x0.75: baja los picos para que no pete (conserva el brillo)
     *left  = bp;
     *right = bp;
 }
