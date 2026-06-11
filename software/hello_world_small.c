@@ -5,6 +5,7 @@
 #include "sys/alt_irq.h"
 #include "altera_avalon_pio_regs.h"
 #include "altera_avalon_timer_regs.h"
+#include "filters.h"            // filtros de audio (seleccionados por SW[1:0])
 
 // --- Mailbox (debe coincidir con hw_test.c) ---
 #define IDX_CMD         0
@@ -18,6 +19,7 @@
 #define REQ_NONE        0
 #define REQ_NEXT        1
 #define REQ_PREV        2
+#define REQ_STOP        3   // KEY3: rebobinar la misma cancion y quedar detenido
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
@@ -26,9 +28,10 @@
 #define AUDIO_RIGHT     12  // byte offset 12: DAC right
 
 // --- Estado compartido ---
-static volatile uint32_t key_event = 0;
-static volatile uint32_t tick_ms   = 0;
-static volatile uint32_t sw_event  = 0;
+static volatile uint32_t key_event   = 0;
+static volatile uint32_t tick_ms     = 0;
+static volatile uint32_t sw_event    = 0;
+static          uint32_t filter_mode = FILTER_BYPASS;   // 0=bypass 1=low 2=high 3=band (SW[1:0])
 
 static const uint8_t seg7[16] = {
     0x40, 0x79, 0x24, 0x30, 0x19,
@@ -68,6 +71,14 @@ static void hex_show_time(uint32_t total_sec) {
     IOWR_32DIRECT(PIO_HEX_LO_BASE, 0, lo);
 }
 
+// --- Leer SW[1:0] -> filter_mode y mostrar el filtro activo en HEX5 ---
+// HEX5: 0=bypass 1=lowpass 2=highpass 3=bandpass (HEX4 apagado). El diseño NO tiene
+// LEDs (sin PIO ni cableado en el top), por eso el indicador va en HEX5.
+static void set_filter(void) {
+    filter_mode = IORD_ALTERA_AVALON_PIO_DATA(PIO_SW_BASE) & 0x3;
+    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, ((uint32_t)seg7[filter_mode] << 7) | 0x7F);
+}
+
 int main(void) {
     // --- Registrar IRQs ---
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(PIO_KEY_BASE, 0xF);
@@ -84,9 +95,9 @@ int main(void) {
         ALTERA_AVALON_TIMER_CONTROL_START_MSK);
     alt_irq_register(SYS_TIMER_IRQ, NULL, timer_isr);
 
-    // --- HEX en 00:00 al inicio ---
+    // --- HEX en 00:00 al inicio + filtro inicial en HEX5 ---
     hex_show_time(0);
-    IOWR_32DIRECT(PIO_HEX_HI_BASE, 0, 0x00003FFF);  // HEX5..HEX4 apagados
+    set_filter();   // lee SW[1:0] y muestra el filtro activo en HEX5
 
     // --- Audio IP: esperar que el codec WM8731 termine de auto-inicializar (~500ms) ---
     for (volatile uint32_t d = 0; d < 2500000; d++) {}
@@ -104,6 +115,7 @@ int main(void) {
     uint32_t last_disp     = 0xFFFFFFFF;
     uint32_t paused        = 0;
     uint32_t pause_started = 0;
+    uint32_t stopped       = 0;   // KEY3: detenido en el inicio de la cancion (espera play)
 
     while (1) {
 
@@ -112,14 +124,28 @@ int main(void) {
             uint32_t k = key_event;
             key_event = 0;
             if (k & 0x1) {                       // KEY0 = play/pausa
-                paused = !paused;
-                if (paused) pause_started = tick_ms;
-                else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
+                if (stopped) {                   // estaba detenido -> play desde el inicio
+                    stopped   = 0;
+                    paused    = 0;
+                    start_ms  = tick_ms;         // MM:SS arranca de 00:00
+                    last_disp = 0xFFFFFFFF;
+                } else {
+                    paused = !paused;
+                    if (paused) pause_started = tick_ms;
+                    else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
+                }
             }
-            if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
-            if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
+            if (k & 0x2) { sh[IDX_REQ] = REQ_PREV; stopped = 0; } // KEY1 = anterior  (lo ejecuta el ARM)
+            if (k & 0x4) { sh[IDX_REQ] = REQ_NEXT; stopped = 0; } // KEY2 = siguiente (lo ejecuta el ARM)
+            if (k & 0x8) {                       // KEY3 = STOP: rebobina la misma cancion, detenido
+                stopped = 1;
+                paused  = 0;
+                sh[IDX_REQ] = REQ_STOP;          // el ARM rebobina la cancion al inicio
+                hex_show_time(0);                // MM:SS -> 00:00
+            }
         }
-        if (sw_event) { sw_event = 0; }
+        // --- SW: cambio de filtro (actualiza filter_mode + indicador en HEX5) ---
+        if (sw_event) { sw_event = 0; set_filter(); }
 
         // --- Audio polling ---
         uint32_t cmd = sh[IDX_CMD];
@@ -133,8 +159,8 @@ int main(void) {
                 last_disp = 0xFFFFFFFF;
             }
 
-            // actualizar HEX MM:SS una vez por segundo (congelado si esta en pausa)
-            if (!paused) {
+            // actualizar HEX MM:SS una vez por segundo (congelado en pausa; 00:00 en stop)
+            if (!paused && !stopped) {
                 uint32_t el = (tick_ms - start_ms) / 1000;
                 if (el != last_disp) {
                     last_disp = el;
@@ -143,21 +169,36 @@ int main(void) {
             }
 
             uint32_t head = sh[IDX_HEAD];
-            if (!paused && head != tail) {   // en pausa: no drena -> buffer se llena -> ARM se frena
-                // espacio en FIFO? si algun canal esta lleno, reintentar (no bloquea)
-                uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) continue;
+            if (!paused && !stopped) {   // pausa/stop: no drena -> buffer se llena -> ARM se frena
+                // Drenar TODAS las muestras disponibles de un saque mientras haya espacio en el
+                // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
+                // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
+                // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
+                // Optimizacion: leer el ESPACIO del FIFO UNA vez y escribir esas N muestras sin
+                // re-chequear -> menos lecturas Avalon por muestra -> sobra tiempo para los filtros.
+                // (El bandpass hace 2 promedios y antes tipaba el loop por debajo de 48kHz -> x0.5.)
+                while (head != tail) {
+                    uint32_t fifo  = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                    uint32_t sl    = (fifo >> 16) & 0xFF;   // espacio canal izq
+                    uint32_t sr    = (fifo >> 24) & 0xFF;   // espacio canal der
+                    uint32_t space = (sl < sr) ? sl : sr;
+                    if (space == 0) break;                  // FIFO lleno
 
-                // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                uint32_t packed = sh[BUF_WORD_START + tail];
-                int32_t left  = (int32_t)(int16_t)(packed >> 16);
-                int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+                    while (space-- > 0 && head != tail) {
+                        // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                        uint32_t packed = sh[BUF_WORD_START + tail];
+                        int32_t left  = (int32_t)(int16_t)(packed >> 16);
+                        int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
-                IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-                IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
+                        apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
 
-                tail = (tail + 1) % BUF_WORDS;
-                sh[IDX_TAIL] = tail;
+                        IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
+                        IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
+
+                        if (++tail >= BUF_WORDS) tail = 0;   // sin modulo
+                    }
+                }
+                sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
             }
 
         } else if (cmd == 2) {
