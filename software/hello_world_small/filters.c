@@ -1,50 +1,65 @@
 #include "filters.h"
 
 // ══════════════════════════════════════════════════════════
-// Filtros IIR de UN POLO. Ventajas vs la version anterior:
-//  - ACOTADOS: la salida nunca se aleja mucho del rango de entrada -> no overflow/ruido.
-//  - BARATOS: 1 resta + 1 shift + 1 suma por muestra -> sin riesgo de underrun.
-// Un polo pasa-bajos:  y += (x - y) >> k.   Corte fc ~= fs / (2*pi*2^k).  fs = 48kHz:
-//   k=2 -> ~1.9kHz    k=3 -> ~950Hz    k=4 -> ~480Hz    k=5 -> ~240Hz
-// (L y R con estado separado para estereo)
+// 3 filtros FIR (promedio móvil) con SUMA CORRIENTE (running sum):
+//   sum += x_nuevo - x_viejo;  ma = sum >> log2(N).   -> O(1) por muestra
+// aunque N sea grande -> podemos usar muchos taps (corte FUERTE) sin encarecer.
+// FIR puro = estable, sin realimentación -> NO se desborda/acumula como los IIR.
+// Promedio móvil de N muestras a 48kHz: corte -3dB ~ fs/(2N).
+//   N=8 -> ~3kHz   N=16 -> ~1.5kHz   N=32 -> ~750Hz   N=64 -> ~375Hz
+//
+// Si querés MÁS o MENOS efecto, cambiá solo los #define (N debe ser potencia de 2,
+// y SH = log2(N)). Lowpass: N grande = más apagado. Highpass: N chico = más fino.
 // ══════════════════════════════════════════════════════════
 
-// ── FILTRO 1: Pasa-bajos (un polo, ~950Hz) ──
-// Quita agudos -> sonido grave/cálido. SW[1:0]=01
-static int32_t lp_l = 0, lp_r = 0;
+#define LP_N    8        // lowpass ~3kHz  (suave: deja medios/agudos -> menos "peta" el parlante)
+#define LP_SH   3
+#define HP_N    8        // highpass: quita por debajo de ~3kHz (mas fino/agudo)
+#define HP_SH   3
+#define BPH_N   4        // bandpass etapa corta: lowpass ~6kHz (mas brillo -> mas claro)
+#define BPH_SH  2
+#define BPL_N  64        // bandpass etapa larga:  lowpass ~375Hz
+#define BPL_SH  6
 
+// Avanza un promedio móvil de N muestras (N potencia de 2) y devuelve su valor.
+static inline int32_t ma(int32_t *buf, int32_t *sum, int *idx, int n, int sh, int32_t x) {
+    *sum      += x - buf[*idx];     // suma corriente: + nuevo - el más viejo
+    buf[*idx]  = x;
+    *idx       = (*idx + 1) & (n - 1);
+    return *sum >> sh;              // / N
+}
+
+// ── FILTRO 1: Pasa-bajos FIR (MA 32 taps) ── apagado/grave. SW[1:0]=01
+static int32_t lp_bl[LP_N], lp_br[LP_N];
+static int32_t lp_sl, lp_sr;
+static int     lp_il, lp_ir;
 static void filter_lowpass(int32_t *left, int32_t *right) {
-    lp_l += (*left  - lp_l) >> 3;
-    lp_r += (*right - lp_r) >> 3;
-    *left  = lp_l;
-    *right = lp_r;
+    *left  = ma(lp_bl, &lp_sl, &lp_il, LP_N, LP_SH, *left);
+    *right = ma(lp_br, &lp_sr, &lp_ir, LP_N, LP_SH, *right);
 }
 
-// ── FILTRO 2: Pasa-altos (un polo, ~950Hz) ──
-// highpass = x - lowpass(x) (lo que el pasa-bajos deja afuera = los agudos).
-// Sonido brillante/fino. SW[1:0]=10
-static int32_t hp_lp_l = 0, hp_lp_r = 0;
-
+// ── FILTRO 2: Pasa-altos FIR (x - MA16) ── brillante/fino. SW[1:0]=10
+static int32_t hp_bl[HP_N], hp_br[HP_N];
+static int32_t hp_sl, hp_sr;
+static int     hp_il, hp_ir;
 static void filter_highpass(int32_t *left, int32_t *right) {
-    hp_lp_l += (*left  - hp_lp_l) >> 3;
-    hp_lp_r += (*right - hp_lp_r) >> 3;
-    *left  = *left  - hp_lp_l;
-    *right = *right - hp_lp_r;
+    int32_t xl = *left, xr = *right;
+    *left  = xl - ma(hp_bl, &hp_sl, &hp_il, HP_N, HP_SH, xl);
+    *right = xr - ma(hp_br, &hp_sr, &hp_ir, HP_N, HP_SH, xr);
 }
 
-// ── FILTRO 3: Pasa-banda (~240Hz - 1.9kHz) ──
-// lowpass rapido (corte alto ~1.9kHz) menos su lowpass lento (corte bajo ~240Hz)
-// = queda la banda media. Efecto voz/telefono. SW[1:0]=11
-static int32_t bp1_l = 0, bp1_r = 0;   // lowpass corte alto
-static int32_t bp2_l = 0, bp2_r = 0;   // lowpass corte bajo
-
+// ── FILTRO 3: Pasa-banda FIR (MA corto - MA largo) ── voz/teléfono. SW[1:0]=11
+// EN MONO: se mezcla L+R y se filtra UNA sola vez (2 promedios en vez de 4) -> mitad de
+// cuentas -> no tipa el NIOS por debajo de 48kHz (antes daba x0.5). Telefono = mono, igual.
+static int32_t bph_b[BPH_N];  static int32_t bph_s;  static int bph_i;
+static int32_t bpl_b[BPL_N];  static int32_t bpl_s;  static int bpl_i;
 static void filter_bandpass(int32_t *left, int32_t *right) {
-    bp1_l += (*left  - bp1_l) >> 2;     // ~1.9kHz
-    bp1_r += (*right - bp1_r) >> 2;
-    bp2_l += (bp1_l  - bp2_l) >> 5;     // ~240Hz
-    bp2_r += (bp1_r  - bp2_r) >> 5;
-    *left  = bp1_l - bp2_l;
-    *right = bp1_r - bp2_r;
+    int32_t m  = (*left + *right) >> 1;                 // mezcla a mono
+    int32_t hi = ma(bph_b, &bph_s, &bph_i, BPH_N, BPH_SH, m);
+    int32_t lo = ma(bpl_b, &bpl_s, &bpl_i, BPL_N, BPL_SH, m);
+    int32_t bp = hi - lo;
+    *left  = bp;
+    *right = bp;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -57,7 +72,7 @@ void apply_filter(int32_t *left, int32_t *right, uint32_t mode) {
         case FILTER_BANDPASS: filter_bandpass(left, right); break;
         default: break;  // BYPASS
     }
-    // Saturacion de seguridad (highpass/bandpass pueden pasarse un poco en transientes).
+    // Saturacion de seguridad (highpass/bandpass = restas, pueden pasarse un poco).
     if      (*left  >  32767) *left  =  32767;
     else if (*left  < -32768) *left  = -32768;
     if      (*right >  32767) *right =  32767;

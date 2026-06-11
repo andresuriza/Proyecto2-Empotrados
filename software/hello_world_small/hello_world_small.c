@@ -159,22 +159,29 @@ int main(void) {
                 // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
                 // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos
                 // y sonaba a media velocidad (x0.5). En lote y sin divisiones por muestra, si alcanza.
+                // Optimizacion: leer el ESPACIO del FIFO UNA vez y escribir esas N muestras sin
+                // re-chequear -> menos lecturas Avalon por muestra -> sobra tiempo para los filtros.
+                // (El bandpass hace 2 promedios y antes tipaba el loop por debajo de 48kHz -> x0.5.)
                 while (head != tail) {
-                    // espacio en FIFO? si algun canal esta lleno, salir del lote (no bloquea)
-                    uint32_t fifo = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
-                    if (((fifo >> 16) & 0xFF) == 0 || ((fifo >> 24) & 0xFF) == 0) break;
+                    uint32_t fifo  = IORD_32DIRECT(AUDIO_0_BASE, AUDIO_FIFO);
+                    uint32_t sl    = (fifo >> 16) & 0xFF;   // espacio canal izq
+                    uint32_t sr    = (fifo >> 24) & 0xFF;   // espacio canal der
+                    uint32_t space = (sl < sr) ? sl : sr;
+                    if (space == 0) break;                  // FIFO lleno
 
-                    // desempacar muestra: bits[31:16]=L bits[15:0]=R
-                    uint32_t packed = sh[BUF_WORD_START + tail];
-                    int32_t left  = (int32_t)(int16_t)(packed >> 16);
-                    int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
+                    while (space-- > 0 && head != tail) {
+                        // desempacar muestra: bits[31:16]=L bits[15:0]=R
+                        uint32_t packed = sh[BUF_WORD_START + tail];
+                        int32_t left  = (int32_t)(int16_t)(packed >> 16);
+                        int32_t right = (int32_t)(int16_t)(packed & 0xFFFF);
 
-                    apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
+                        apply_filter(&left, &right, filter_mode);   // filtro segun SW[1:0]
 
-                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
-                    IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
+                        IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_LEFT,  left);
+                        IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_RIGHT, right);
 
-                    if (++tail >= BUF_WORDS) tail = 0;   // sin modulo (division)
+                        if (++tail >= BUF_WORDS) tail = 0;   // sin modulo
+                    }
                 }
                 sh[IDX_TAIL] = tail;   // publicar el tail una vez por lote
             }
