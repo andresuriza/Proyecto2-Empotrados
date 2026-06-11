@@ -11,7 +11,7 @@
 #define IDX_CMD         0
 #define IDX_HEAD        1
 #define IDX_TAIL        2
-#define IDX_REQ         3   // NIOS -> ARM: peticion de control (0=nada,1=next,2=prev)
+#define IDX_REQ         3   // NIOS -> ARM: peticion de control (0=nada,1=next,2=prev,3=stop)
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
@@ -19,6 +19,7 @@
 #define REQ_NONE        0
 #define REQ_NEXT        1
 #define REQ_PREV        2
+#define REQ_STOP        3   // KEY3: rebobinar la misma cancion y quedar detenido
 
 // --- Audio IP offsets (desde AUDIO_0_BASE) ---
 #define AUDIO_CTRL      0   // byte offset 0
@@ -114,6 +115,7 @@ int main(void) {
     uint32_t last_disp     = 0xFFFFFFFF;
     uint32_t paused        = 0;
     uint32_t pause_started = 0;
+    uint32_t stopped       = 0;   // KEY3: detenido en el inicio de la cancion (espera play)
 
     while (1) {
 
@@ -122,12 +124,25 @@ int main(void) {
             uint32_t k = key_event;
             key_event = 0;
             if (k & 0x1) {                       // KEY0 = play/pausa
-                paused = !paused;
-                if (paused) pause_started = tick_ms;
-                else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
+                if (stopped) {                   // estaba detenido -> play desde el inicio
+                    stopped   = 0;
+                    paused    = 0;
+                    start_ms  = tick_ms;         // MM:SS arranca de 00:00
+                    last_disp = 0xFFFFFFFF;
+                } else {
+                    paused = !paused;
+                    if (paused) pause_started = tick_ms;
+                    else        start_ms += (tick_ms - pause_started); // no contar la pausa en MM:SS
+                }
             }
-            if (k & 0x2) sh[IDX_REQ] = REQ_PREV; // KEY1 = anterior  (lo ejecuta el ARM)
-            if (k & 0x4) sh[IDX_REQ] = REQ_NEXT; // KEY2 = siguiente (lo ejecuta el ARM)
+            if (k & 0x2) { sh[IDX_REQ] = REQ_PREV; stopped = 0; } // KEY1 = anterior  (lo ejecuta el ARM)
+            if (k & 0x4) { sh[IDX_REQ] = REQ_NEXT; stopped = 0; } // KEY2 = siguiente (lo ejecuta el ARM)
+            if (k & 0x8) {                       // KEY3 = STOP: rebobina la misma cancion, detenido
+                stopped = 1;
+                paused  = 0;
+                sh[IDX_REQ] = REQ_STOP;          // el ARM rebobina la cancion al inicio
+                hex_show_time(0);                // MM:SS -> 00:00
+            }
         }
         // --- SW: cambio de filtro (actualiza filter_mode + indicador en HEX5) ---
         if (sw_event) { sw_event = 0; set_filter(); }
@@ -144,8 +159,8 @@ int main(void) {
                 last_disp = 0xFFFFFFFF;
             }
 
-            // actualizar HEX MM:SS una vez por segundo (congelado si esta en pausa)
-            if (!paused) {
+            // actualizar HEX MM:SS una vez por segundo (congelado en pausa; 00:00 en stop)
+            if (!paused && !stopped) {
                 uint32_t el = (tick_ms - start_ms) / 1000;
                 if (el != last_disp) {
                     last_disp = el;
@@ -154,7 +169,7 @@ int main(void) {
             }
 
             uint32_t head = sh[IDX_HEAD];
-            if (!paused) {   // en pausa: no drena -> buffer se llena -> ARM se frena
+            if (!paused && !stopped) {   // pausa/stop: no drena -> buffer se llena -> ARM se frena
                 // Drenar TODAS las muestras disponibles de un saque mientras haya espacio en el
                 // FIFO. Antes se escribia 1 muestra por vuelta del while(1), con /1000 y %BUF_WORDS
                 // por muestra -> el loop no sostenia 48kHz -> el codec (master) se quedaba sin datos

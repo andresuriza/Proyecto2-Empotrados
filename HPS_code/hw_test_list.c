@@ -5,8 +5,10 @@
 // Protocolo mailbox (coincide con software/hello_world_small.c):
 //   sh[0]=CMD (ARM->NIOS): 0 idle, 1 play, 2 stop
 //   sh[1]=HEAD (ARM->NIOS), sh[2]=TAIL (NIOS->ARM)
-//   sh[3]=REQ (NIOS->ARM): 0 nada, 1 next, 2 prev  <-- los botones del NIOS escriben aqui
+//   sh[3]=REQ (NIOS->ARM): 0 nada, 1 next, 2 prev, 3 stop  <-- los botones del NIOS escriben aqui
 //   La PAUSA la maneja el NIOS (deja de drenar -> backpressure frena al ARM). No requiere nada aqui.
+//   El STOP (KEY3) lo pide el NIOS con REQ_STOP=3: el ARM rebobina la MISMA cancion al inicio;
+//   el NIOS queda "detenido" (no drena) hasta que se presione play. -> reinicia la cancion actual.
 //
 // AUDIO SIN CORTES (doble-buffer): un HILO LECTOR lee la SD a un ring grande en RAM, y el
 // bucle ALIMENTADOR saca del ring y escribe a la shared_mem (gateado por el NIOS = pitch 48kHz).
@@ -46,6 +48,7 @@
 #define REQ_NONE    0
 #define REQ_NEXT    1
 #define REQ_PREV    2
+#define REQ_STOP    3   // KEY3: rebobinar la MISMA cancion al inicio y quedar detenido
 
 // Buffer circular en shared_mem (lo drena el NIOS)
 #define BUF_WORD_START  64
@@ -97,9 +100,10 @@ static void vga_clear(int bg) {
     for (int r = 0; r < VGA_ROWS; r++)
         for (int c = 0; c < VGA_COLS; c++) vga_putc(r, c, ' ', C_WHITE, bg);
 }
-// Pinta "ahora suena": titulo/artista/album + numero de cancion. Si falta un tag, usa el filename.
+// Pinta "ahora suena": titulo/artista/album + duracion total + numero de cancion.
+// Si falta un tag, usa el filename. dur_sec = duracion total de la cancion en segundos.
 static void vga_show_track(const char *title, const char *artist, const char *album,
-                           const char *fname, int num, int total) {
+                           const char *fname, int num, int total, uint32_t dur_sec) {
     char line[VGA_COLS + 1];
     const char *base = strrchr(fname, '/');
     base = base ? base + 1 : fname;
@@ -112,6 +116,8 @@ static void vga_show_track(const char *title, const char *artist, const char *al
     vga_print(3, 0, line, C_WHITE, C_BLUE);
     snprintf(line, sizeof line, "Album  : %s", album[0]  ? album  : "Desconocido");
     vga_print(4, 0, line, C_WHITE, C_BLUE);
+    snprintf(line, sizeof line, "Duracion: %02u:%02u", (dur_sec / 60) % 100, dur_sec % 60);
+    vga_print(5, 0, line, C_WHITE, C_BLUE);
     snprintf(line, sizeof line, "Cancion %d/%d", num, total);
     vga_print(6, 0, line, C_GREEN, C_BLUE);
 }
@@ -240,6 +246,7 @@ static void *reader_thread(void *arg) {
 //   REQ_NONE(0) -> termino sola (auto-siguiente)
 //   REQ_NEXT(1) -> el NIOS pidio siguiente
 //   REQ_PREV(2) -> el NIOS pidio anterior
+//   REQ_STOP(3) -> el NIOS pidio stop (main rebobina la MISMA cancion; el NIOS queda detenido)
 static int play_track(volatile uint32_t *sh, const char *fname, int num, int total) {
     FILE *wav = fopen(fname, "rb");
     if (!wav) { perror("fopen"); return REQ_NEXT; }   // si falla, saltar
@@ -262,8 +269,11 @@ static int play_track(volatile uint32_t *sh, const char *fname, int num, int tot
     uint32_t head = 0;
     sh[IDX_CMD]  = CMD_PLAY;
 
-    printf("Reproduciendo: %s (%u Hz, %u ch)\n", fname, sample_rate, channels);
-    vga_show_track(title, artist, album, fname, num, total);   // metadata en la pantalla VGA
+    // duracion total = frames / sample_rate  (el dato sale del header WAV ya parseado)
+    uint32_t dur_sec = sample_rate ? (data_size / (channels * 2)) / sample_rate : 0;
+
+    printf("Reproduciendo: %s (%u Hz, %u ch, %u s)\n", fname, sample_rate, channels, dur_sec);
+    vga_show_track(title, artist, album, fname, num, total, dur_sec);   // metadata en la VGA
 
     // --- arrancar el hilo lector (SD -> ring de RAM) ---
     reader_stop = 0;
@@ -349,8 +359,9 @@ int main(int argc, char *argv[]) {
     int idx = 0;
     while (1) {
         int r = play_track(sh, playlist[idx], idx + 1, n_tracks);
-        if (r == REQ_PREV) idx = (idx - 1 + n_tracks) % n_tracks;
-        else               idx = (idx + 1) % n_tracks;   // REQ_NEXT o fin natural
+        if      (r == REQ_PREV) idx = (idx - 1 + n_tracks) % n_tracks;
+        else if (r == REQ_STOP) { /* misma cancion: rebobinar al inicio (el NIOS queda detenido) */ }
+        else                    idx = (idx + 1) % n_tracks;   // REQ_NEXT o fin natural
     }
 
     // (no se alcanza — reproduccion continua. Ctrl+C para salir.)
