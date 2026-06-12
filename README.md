@@ -158,9 +158,9 @@ La frecuencia de muestreo de las canciones es algo complejo de manejar a la hora
 
 ### Prerequisitos
 
-Se debe instalar Quartus 18.1.
+Se debe instalar (Quartus 18.1)[https://www.altera.com/downloads/fpga-development-tools/quartus-prime-lite-edition-design-software-version-18-1-windows].
 
-### Compilacion
+### Compilación
 
 1. Compilar en Quartus luego de abrir el `Proyecto2.qsf`
 
@@ -206,12 +206,13 @@ quartus_cpf -c -o bitstream_compression=on Proyecto2.sof output_file.rbf
 ```bash
 arm-linux-gnueabihf-gcc -O2 -static -pthread -o hw_test_list HPS_code/hw_test_list.c
 ```
+### Transferir archivos
 
 7. Copiar a tarjeta SD `hw_test_list` a `/home/root/hw_test_list`
 
 8. Copiar a tarjeta SD (particion FAT) el `output_file.rbf`
 
-9. Copiar a `/etc/init.d/` el archivo `audioplayer`
+9. Copiar a `/etc/init.d/` el archivo [audioplayer](linux_files/etc/init.d/audioplayer)
 
 **Nota** Para comunicarse con la FPGA para los siguientes comandos, se recomienda usar PuTTY o Minicom para utilizar el cable Mini-B UART o Ethernet.
 
@@ -221,6 +222,8 @@ arm-linux-gnueabihf-gcc -O2 -static -pthread -o hw_test_list HPS_code/hw_test_li
 chmod +x /etc/init.d/audioplayer
 ln -s /etc/init.d/audioplayer /etc/rc5.d/S15audioplayer
 ```
+
+### Optmizaciones
 
 11. Eliminar el delay a U-BOOT
 
@@ -248,6 +251,8 @@ rm /etc/rc5.d/S*gsrd*
 rm /etc/rc5.d/S*bootlogd
 rm /etc/rc5.d/S*lighttpd             
 rm /etc/rc5.d/S*sshd
+
+### Preparación de audio
 ```
 13. Convertir las canciones deseadas al formato correcto
 
@@ -263,3 +268,12 @@ ffmpeg -i "entrada.wav" -ar 48000 -ac 2 -c:a pcm_s16le \
 <img width="800" height="900" alt="image" src="https://github.com/user-attachments/assets/cca724b2-05bc-42c1-aaa6-e4525a5a4541" />
 
 https://github.com/user-attachments/assets/55049c0d-988b-4757-9c5e-33aed6ddc479
+
+## Contribuidores
+
+Desarrollado por Andres Uriza, Gabriel Guzman, Josué Granados, Sebastián Hernández
+
+## Links útiles
+
+Para archivos de De1-SoC: https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=165&No=836&PartNo=4
+
