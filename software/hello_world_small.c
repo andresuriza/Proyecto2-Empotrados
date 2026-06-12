@@ -12,6 +12,10 @@
 #define IDX_HEAD        1
 #define IDX_TAIL        2
 #define IDX_REQ         3   // NIOS -> ARM: peticion de control (0=nada,1=next,2=prev)
+#define IDX_STATE       4   // NIOS -> ARM: estado (0 detenido,1 reproduciendo,2 pausa) para la VGA
+#define ST_STOPPED      0
+#define ST_PLAYING      1
+#define ST_PAUSED       2
 #define BUF_WORD_START  64
 #define BUF_WORDS       16320
 
@@ -113,6 +117,7 @@ int main(void) {
     uint32_t playing       = 0;
     uint32_t start_ms      = 0;
     uint32_t last_disp     = 0xFFFFFFFF;
+    uint32_t last_state    = 0xFFFFFFFF;   // ultimo estado publicado a la VGA (sh[IDX_STATE])
     uint32_t paused        = 0;
     uint32_t pause_started = 0;
     uint32_t stopped       = 0;   // KEY3: detenido en el inicio de la cancion (espera play)
@@ -212,6 +217,10 @@ int main(void) {
             IOWR_32DIRECT(AUDIO_0_BASE, AUDIO_CTRL, 0x0);
             // el HEX queda mostrando el tiempo final de la cancion
         }
+
+        // publicar estado para la VGA (lo dibuja el ARM): 0 detenido, 1 reproduciendo, 2 pausa
+        uint32_t st = stopped ? ST_STOPPED : (paused ? ST_PAUSED : (playing ? ST_PLAYING : ST_STOPPED));
+        if (st != last_state) { sh[IDX_STATE] = st; last_state = st; }
     }
 
     return 0;
