@@ -267,7 +267,7 @@ ffmpeg -i "entrada.wav" -ar 48000 -ac 2 -c:a pcm_s16le \
 
 <img width="800" height="900" alt="image" src="https://github.com/user-attachments/assets/cca724b2-05bc-42c1-aaa6-e4525a5a4541" />
 
-https://github.com/user-attachments/assets/55049c0d-988b-4757-9c5e-33aed6ddc479
+https://github.com/user-attachments/assets/cc6416d0-2b17-4818-85c0-8601beab9566
 
 ## Contribuidores
 
