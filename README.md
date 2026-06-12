@@ -158,7 +158,7 @@ La frecuencia de muestreo de las canciones es algo complejo de manejar a la hora
 
 ### Prerequisitos
 
-Se debe instalar (Quartus 18.1)[https://www.altera.com/downloads/fpga-development-tools/quartus-prime-lite-edition-design-software-version-18-1-windows].
+Se debe instalar [Quartus 18.1](https://www.altera.com/downloads/fpga-development-tools/quartus-prime-lite-edition-design-software-version-18-1-windows).
 
 ### Compilación
 
