@@ -6,6 +6,7 @@
 //   sh[0]=CMD (ARM->NIOS): 0 idle, 1 play, 2 stop
 //   sh[1]=HEAD (ARM->NIOS), sh[2]=TAIL (NIOS->ARM)
 //   sh[3]=REQ (NIOS->ARM): 0 nada, 1 next, 2 prev, 3 stop  <-- los botones del NIOS escriben aqui
+//   sh[4]=STATE (NIOS->ARM): 0 detenido, 1 reproduciendo, 2 pausa  <-- el ARM lo muestra en la VGA
 //   La PAUSA la maneja el NIOS (deja de drenar -> backpressure frena al ARM). No requiere nada aqui.
 //   El STOP (KEY3) lo pide el NIOS con REQ_STOP=3: el ARM rebobina la MISMA cancion al inicio;
 //   el NIOS queda "detenido" (no drena) hasta que se presione play. -> reinicia la cancion actual.
@@ -49,6 +50,11 @@
 #define REQ_NEXT    1
 #define REQ_PREV    2
 #define REQ_STOP    3   // KEY3: rebobinar la MISMA cancion al inicio y quedar detenido
+
+#define IDX_STATE   4   // NIOS -> ARM: estado de reproduccion (para mostrarlo en la VGA)
+#define ST_STOPPED  0
+#define ST_PLAYING  1
+#define ST_PAUSED   2
 
 // Buffer circular en shared_mem (lo drena el NIOS)
 #define BUF_WORD_START  64
@@ -120,6 +126,20 @@ static void vga_show_track(const char *title, const char *artist, const char *al
     vga_print(5, 0, line, C_WHITE, C_BLUE);
     snprintf(line, sizeof line, "Cancion %d/%d", num, total);
     vga_print(6, 0, line, C_GREEN, C_BLUE);
+}
+
+// Indicador de estado (requisito PDF): reproduciendo / pausa / detenido. Fila 7.
+static uint32_t last_vga_state = 0xFFFFFFFF;
+static void vga_show_state(uint32_t st) {
+    const char *txt = (st == ST_PAUSED)  ? "Estado: PAUSA        "
+                    : (st == ST_STOPPED) ? "Estado: DETENIDO     "
+                    :                      "Estado: Reproduciendo";
+    vga_print(7, 0, txt, C_YELLOW, C_BLUE);
+}
+// Lee el estado que publica el NIOS en sh[4] y redibuja SOLO si cambió (no toca el audio).
+static void vga_poll_state(volatile uint32_t *sh) {
+    uint32_t st = sh[IDX_STATE];
+    if (st != last_vga_state) { last_vga_state = st; vga_show_state(st); }
 }
 
 typedef struct {
@@ -274,6 +294,8 @@ static int play_track(volatile uint32_t *sh, const char *fname, int num, int tot
 
     printf("Reproduciendo: %s (%u Hz, %u ch, %u s)\n", fname, sample_rate, channels, dur_sec);
     vga_show_track(title, artist, album, fname, num, total, dur_sec);   // metadata en la VGA
+    last_vga_state = 0xFFFFFFFF;   // forzar redibujo del estado para este tema (vga_show_track borro la fila)
+    vga_poll_state(sh);            // dibujar el estado actual del NIOS ya
 
     // --- arrancar el hilo lector (SD -> ring de RAM) ---
     reader_stop = 0;
@@ -290,6 +312,7 @@ static int play_track(volatile uint32_t *sh, const char *fname, int num, int tot
     // --- bucle ALIMENTADOR (ring de RAM -> shared_mem). Igual que antes pero
     //     sacando del ring en vez de leer la SD aca. Pitch = NIOS = 48kHz. ---
     for (;;) {
+        vga_poll_state(sh);     // refrescar indicador de estado (reproduciendo) si cambió
         uint32_t rh = ring_head;
         __sync_synchronize();   // ver los datos que el lector escribió antes de publicar head
 
@@ -305,6 +328,7 @@ static int play_track(volatile uint32_t *sh, const char *fname, int num, int tot
             // backpressure: esperar espacio, romper si hay peticion (incluye pausa via NIOS)
             uint32_t next = (head + 1) % BUF_WORDS;
             while (next == sh[IDX_TAIL]) {
+                vga_poll_state(sh);   // en pausa/stop el ARM gira aca -> refresca el estado en la VGA
                 if (sh[IDX_REQ] != REQ_NONE) { ret = sh[IDX_REQ]; sh[IDX_REQ] = REQ_NONE; goto stop; }
             }
 
