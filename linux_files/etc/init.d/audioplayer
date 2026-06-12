@@ -1,0 +1,8 @@
+#!/bin/sh
+mount /dev/mmcblk0p1 /mnt/sd
+dd if=/mnt/sd/output_file.rbf of=/dev/fpga0
+echo 1 > /sys/class/fpga-bridge/lwhps2fpga/enable
+echo 1 > /sys/class/fpga-bridge/hps2fpga/enable
+echo 1 > /sys/class/fpga-bridge/fpga2hps/enable
+cp /mnt/sd/hw_test_list /tmp/
+/tmp/hw_test_list /mnt/sd/music > /dev/null 2>&1 &

@@ -58,6 +58,8 @@
 !/HPS_code
 /SoftwareARM/HANDOFF.md 
 !/SoftwareARM
+!/linux_files
+
 ## tbd
 
 !*.tcl
