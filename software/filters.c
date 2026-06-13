@@ -23,8 +23,8 @@
 
 // FILTRO 3 = "aplastado + eco" (lowpass MA + delay realimentado). Cubre el renglon 3 del PDF
 // como REVERBERACION. Bounded (seco+eco = 1) -> NO clippea. 1 solo promedio -> barato, va a tiempo.
-#define DUB_LP_N   8     // aplastado: promedio movil de 8 (~2.6kHz, muffled pero mas presente)
-#define DUB_LP_SH  3     // 2^3 = 8 (promedio exacto)
+#define DUB_LP_N   4     // aplastado suave: promedio movil de 4 (~5kHz, poco muffled)
+#define DUB_LP_SH  2     // 2^2 = 4 (promedio exacto)
 #define ECHO_D  2048     // retardo del eco (~43ms @48kHz). Buffer = 8KB en onchip (bajar si no linkea).
 
 // Avanza un promedio móvil de N muestras (cualquier N) y devuelve sum >> SH.
@@ -75,7 +75,7 @@ static void filter_eq(int32_t *left, int32_t *right) {
     int32_t m  = (*left + *right) >> 1;                              // mono
     int32_t lp = ma(dub_b, &dub_s, &dub_i, DUB_LP_N, DUB_LP_SH, m);  // aplastado (MA16, muffled)
     int32_t d  = echo_buf[echo_i];                                  // salida de hace ECHO_D = eco
-    int32_t out = lp - (lp >> 2) + (d >> 2);   // 0.75 aplastado + 0.25 eco (bounded -> NO clippea)
+    int32_t out = (lp >> 1) + (d >> 1);        // 0.5 aplastado + 0.5 eco (bounded -> NO clippea)
     echo_buf[echo_i] = out;                     // feedback -> cola de eco que decae
     if (++echo_i >= ECHO_D) echo_i = 0;
     *left  = out;

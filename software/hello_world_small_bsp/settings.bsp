@@ -2,8 +2,8 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>12-jun-2026 22:50:19</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1781326219382</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>12-jun-2026 22:56:05</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1781326565408</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\gabri\Proyectos\ProyectoEmpotrados2\Proyecto2-Empotrados\software\hello_world_small_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>..\..\hps.sopcinfo</SopcDesignFile>
