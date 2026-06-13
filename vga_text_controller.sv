@@ -1,56 +1,3 @@
-// ============================================================================
-//  vga_text_controller.sv  —  VGA 8x16 text/metadata display controller
-// ----------------------------------------------------------------------------
-//  DE1-SoC (Cyclone V 5CSEMA5F31). Avalon-MM slave + VGA conduit, instantiated
-//  in Platform Designer as component "vga_text_controller".
-//
-//  Renders a 40 x 8 character text region (top-left 320x128 px of a 640x480
-//  screen) from an on-chip character buffer that the processor writes over
-//  Avalon-MM. Pixel pipeline: text_buffer (cell) -> font_rom (glyph row) ->
-//  palette colour. The VGA output path (vga_timing, sync/blank, DAC clock) is
-//  the PROVEN-GOOD path from the working test controller and is unchanged.
-//
-//  MEMORIES — instantiated DIRECTLY as Cyclone V M10K blocks via the altsyncram
-//  primitive with ram_block_type="M10K". This is a hard primitive selection
-//  (not RAM/ROM inference, no ramstyle/romstyle hints), so M10K mapping is
-//  guaranteed — avoiding the earlier inference failure that pushed the memories
-//  into LABs/registers.
-//
-//  This single file contains ALL controller modules (text_buffer, font_rom,
-//  char_renderer, vga_text_controller). vga_timing lives in vga_timing.sv.
-//  Both are already in the Platform Designer component fileset.
-//
-//  ────────────────────────────────────────────────────────────────────────
-//  SOFTWARE-VISIBLE INTERFACE  (read this, SW team)
-//  ────────────────────────────────────────────────────────────────────────
-//  Slave is a PURE TEXT BUFFER — no control registers. Base (ARM, behind the
-//  HPS-to-FPGA Lightweight bridge) = 0xFF200000 + 0x10000 = 0xFF210000.
-//
-//    * Word-addressed (addressUnits = WORDS): avl_address is the CELL INDEX.
-//          cell_index = row * 40 + col        (col 0..39, row 0..7)
-//      Byte offset (if your driver uses byte addresses) = cell_index * 4.
-//      Words 0..319 are cells; words >= 320 ignore writes and read 0.
-//
-//    * One 16-bit character cell per 32-bit word:
-//
-//          bit 15 14 13 12 | 11 10  9  8 |  7  6  5  4  3  2  1  0
-//               \--- bg ---/  \--- fg ---/  \-------- ASCII --------/
-//
-//          [ 7:0]  printable ASCII (0x20..0x7E); other codes -> blank
-//          [11:8]  foreground palette index (0..15)
-//          [15:12] background palette index (0..15)
-//          [31:16] unused — ignored on write, reads back 0
-//
-//    * 16-colour palette: 0 black 1 blue 2 green 3 cyan 4 red 5 magenta 6 brown
-//      7 lt-gray 8 dk-gray 9 br-blue 10 br-green 11 br-cyan 12 br-red
-//      13 br-magenta 14 yellow 15 white.
-//
-//    * Reads have fixed latency 1 and return 0 (write-only buffer); no waitrequest.
-//
-//  RESET: synchronous, active-high. CLOCK: single 50 MHz domain (internal /2
-//  pixel enable + divided DAC clock; no clock-domain crossing).
-// ============================================================================
-
 module vga_text_controller (
     // ── Clock & reset ────────────────────────────────────────────────────────
     input  logic        clk,            // 50 MHz (clk_0.clk)
@@ -157,14 +104,6 @@ module vga_text_controller (
 
 endmodule
 
-
-// ============================================================================
-//  text_buffer  —  simple dual-port character RAM (altsyncram, M10K)
-// ----------------------------------------------------------------------------
-//  Port A = write side (Avalon).  Port B = read side (renderer).  512x16, of
-//  which 320 cells are used. Read latency on Port B = 1 clock (address
-//  registered, output unregistered). No reset (M10K has no array reset).
-// ============================================================================
 module text_buffer (
     input  logic        clk,
     input  logic [8:0]  a_addr,         // write address (cell index)
@@ -222,13 +161,6 @@ module text_buffer (
 
 endmodule
 
-
-// ============================================================================
-//  font_rom  —  8x16 ASCII font ROM (altsyncram ROM, M10K, init font.mif)
-// ----------------------------------------------------------------------------
-//  4096 x 8 = 256 glyphs x 16 rows. addr = {ascii[7:0], glyph_y[3:0]}.
-//  data = 8-pixel row bitmap, bit 7 = leftmost pixel. Read latency = 1 clock.
-// ============================================================================
 module font_rom (
     input  logic        clk,
     input  logic [11:0] addr,           // {ascii, glyph_y}
@@ -270,22 +202,6 @@ module font_rom (
 
 endmodule
 
-
-// ============================================================================
-//  char_renderer  —  pixel coords -> cell -> font pixel -> RGB
-// ----------------------------------------------------------------------------
-//  3-stage pipeline, latency = text_buffer(1) + font_rom(1) + output reg(1):
-//
-//    T   (comb)  : col/row/glyph from live timing; drive text_buffer b_addr.
-//    T+1         : cell valid -> ascii/fg/bg; drive font_rom {ascii, gy}.
-//    T+2         : font row valid -> select glyph pixel, index palette (comb).
-//    T+3         : register RGB out.
-//
-//  HSYNC/VSYNC/active AND glyph_x/fg/bg/in_region are delayed by the SAME number
-//  of stages so the emitted pixel lines up with sync — text is NOT shifted
-//  horizontally. The pixel coordinate is held stable for the whole 2-clk pixel
-//  period, so the registered output is stable when the DAC samples it.
-// ============================================================================
 module char_renderer #(
     parameter int COLS = 40,
     parameter int ROWS = 8
@@ -388,8 +304,6 @@ module char_renderer #(
         endcase
     endfunction
 
-    // Inside the text region during active video -> glyph colour; otherwise black
-    // (outside the 40x8 region, and during blanking).
     assign rgb = (act_d2 && inr_d2) ? palette(color_idx) : 24'h00_00_00;
 
     // ── Stage T+3 : output registers (RGB and sync aligned) ──────────────────

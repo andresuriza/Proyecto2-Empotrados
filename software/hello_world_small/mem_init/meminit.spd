@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<simPackage>
-<file path="hdl_sim/hps_onchip_mem.dat" type="DAT" initParamName="INIT_FILE" memoryPath="onchip_mem" />
-<file path="hdl_sim/hps_shared_mem.dat" type="DAT" initParamName="INIT_FILE" memoryPath="shared_mem" />
-<file path="hps_onchip_mem.hex" type="HEX" initParamName="INIT_FILE" memoryPath="onchip_mem" />
-<file path="hps_shared_mem.hex" type="HEX" initParamName="INIT_FILE" memoryPath="shared_mem" />
-</simPackage>
