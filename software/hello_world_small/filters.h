@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-// Modos de filtro — seleccionados por SW[1:0]
 #define FILTER_BYPASS   0
 #define FILTER_LOWPASS  1
 #define FILTER_HIGHPASS 2

@@ -35,7 +35,9 @@ static int32_t hp_sl, hp_sr;  static int hp_il, hp_ir;
 
 // Aplica un filtro FIR pasa-altos a los canales estéreo.
 static void filter_highpass(int32_t *left, int32_t *right) {
-    int32_t xl = *left, xr = *right;
+    int32_t xl = *left;
+    int32_t xr = *right;
+
     *left  = xl - ma(hp_bl, &hp_sl, &hp_il, HP_N, HP_SH, xl);
     *right = xr - ma(hp_br, &hp_sr, &hp_ir, HP_N, HP_SH, xr);
 }
