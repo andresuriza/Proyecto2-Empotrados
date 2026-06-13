@@ -12,7 +12,7 @@ Un reproductor de audio implementado para la FPGA De1-SoC para reproducir músic
 ## Características
 
 - Visualización de información de metadatos en tiempo real en display VGA
-- Se pueden aplicar filtros en tiempo real (pasabandas, pasaaltas, pasabajas) usando los switches
+- Se pueden aplicar filtros en tiempo real (pasa-altas, pasa-banda, reverberacion) usando los switches
 - Cargar música en formato `WAV` en una tarjeta microSD
 - Alta definición de audio desde el parlante
 
@@ -124,11 +124,14 @@ El audio tenía unos bugs como reproducción cortada, muestreo equivocado, entre
 
 Se implementó un controlador personalizado para visualizar texto en pantalla VGA, utilizando un buffer de texto en memoria M10K, una vez se observó lo deseado en pantalla, se procedió a realizar la lectura de metadatos con el fin de observarlos en la pantalla.
 
-De último se hicieron los filtros, usando una máquina de estados de dos estados, con el objetivo de bloquear cambio de filtro hasta que todos esten en 0, es decir, solo puede haber 1 switch seleccionado para que se aplique. Estos filtros inicialmente no se escuchaban adecuadamente, pero luego de unas correcciones de software se pudieron afinar a un modelo de referencia en Python. A nivel matemático, son promedios moviles FIR.
+De último se hicieron los filtros, donde cada valor de SW[1:0] de 2 bits selecciona uno de los filtros y el activo se muestra en HEX5. Estos filtros inicialmente no se escuchaban adecuadamente, pero luego de unas correcciones de software se pudieron afinar a un modelo de referencia en Python. A nivel matemático, son promedios moviles FIR.
 
-- SW[0] Pasabajos
-- SW[1] Pasaaltos
-- SW[2] Pasabanda
+| `SW[1:0]` | HEX5 | Filtro | Cálculo |
+|-----------|------|--------|---------|
+| `00` | 0 | Bypass | sin procesamiento |
+| `01` | 1 | Pasa-altas | `y = x − MA8(x)` — resta el promedio de 8 muestras (~2.6 kHz); quedan los agudos. Estéreo |
+| `10` | 2 | Pasa-banda | mono `m=(L+R)/2`: `y = MA4(m) − MA64(m)` — deja la banda media (~330 Hz a ~5 kHz), atenuado ×0.75 |
+| `11` | 3 | Reverberación | mono: `lp = MA4(m)`; `y = 0.5·lp + 0.5·y[n−D]`, D=2048 (~43 ms) realimentado — eco con cola que decae, acotado (no satura) |
 
 Se implementó el boot automático sin tener que estar flasheando el sistema mediante JTAG y ejecutando comandos en el procesador ARM, mediante un script de ejecución automática y un daemon para el ejecutable encargado de cargar la música en su directorio correspondiente en forma de playlist.
 
