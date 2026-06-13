@@ -12,7 +12,7 @@
 // Corte -3dB de un MA de N ~ 0.44*fs/N (fs=48kHz):  N=8->~2.6kHz  N=12->~1.8kHz  N=64->~330Hz
 // ══════════════════════════════════════════════════════════
 
-#define LP_N   12        // lowpass ~1.8kHz, atenuado x0.75 (12/16) -> mas apagado y NO petea
+#define LP_N   12        // lowpass (quedo FUERA de la seleccion; el slot 1 ahora es el pasa-altas)
 #define LP_SH   4
 #define HP_N    8        // highpass: x - MA8 (~2.6kHz) -> fino/agudo
 #define HP_SH   3
@@ -20,6 +20,12 @@
 #define BPH_SH  2
 #define BPL_N  64        // bandpass corte bajo ~330Hz
 #define BPL_SH  6
+
+// FILTRO 3 = "aplastado + eco" (lowpass MA + delay realimentado). Cubre el renglon 3 del PDF
+// como REVERBERACION. Bounded (seco+eco = 1) -> NO clippea. 1 solo promedio -> barato, va a tiempo.
+#define DUB_LP_N   8     // aplastado: promedio movil de 8 (~2.6kHz, muffled pero mas presente)
+#define DUB_LP_SH  3     // 2^3 = 8 (promedio exacto)
+#define ECHO_D  2048     // retardo del eco (~43ms @48kHz). Buffer = 8KB en onchip (bajar si no linkea).
 
 // Avanza un promedio móvil de N muestras (cualquier N) y devuelve sum >> SH.
 static inline int32_t ma(int32_t *buf, int32_t *sum, int *idx, int n, int sh, int32_t x) {
@@ -37,7 +43,7 @@ static void filter_lowpass(int32_t *left, int32_t *right) {
     *right = ma(lp_br, &lp_sr, &lp_ir, LP_N, LP_SH, *right);
 }
 
-// ── FILTRO 2: Pasa-altos FIR (x - MA8) ── brillante/fino. SW[1:0]=10
+// ── FILTRO 2: Pasa-altos FIR (x - MA8) ── brillante/fino. SW[1:0]=10  (ORIGINAL, sin boost)
 static int32_t hp_bl[HP_N], hp_br[HP_N];
 static int32_t hp_sl, hp_sr;  static int hp_il, hp_ir;
 static void filter_highpass(int32_t *left, int32_t *right) {
@@ -60,15 +66,32 @@ static void filter_bandpass(int32_t *left, int32_t *right) {
     *right = bp;
 }
 
+// ── FILTRO 3: "Aplastado + eco" (lowpass + delay realimentado) EN MONO ──
+// Suena muffled (aplastado) con una cola de eco. Bounded (0.75 seco + 0.25 eco = 1) -> NO clippea.
+// 1 promedio + un buffer de retardo -> barato, va a tiempo. (Cubre "reverberacion" del PDF.)
+static int32_t dub_b[DUB_LP_N]; static int32_t dub_s; static int dub_i;
+static int32_t echo_buf[ECHO_D]; static int echo_i;
+static void filter_eq(int32_t *left, int32_t *right) {
+    int32_t m  = (*left + *right) >> 1;                              // mono
+    int32_t lp = ma(dub_b, &dub_s, &dub_i, DUB_LP_N, DUB_LP_SH, m);  // aplastado (MA16, muffled)
+    int32_t d  = echo_buf[echo_i];                                  // salida de hace ECHO_D = eco
+    int32_t out = lp - (lp >> 2) + (d >> 2);   // 0.75 aplastado + 0.25 eco (bounded -> NO clippea)
+    echo_buf[echo_i] = out;                     // feedback -> cola de eco que decae
+    if (++echo_i >= ECHO_D) echo_i = 0;
+    *left  = out;
+    *right = out;
+}
+
 // ══════════════════════════════════════════════════════════
 // FUNCIÓN PÚBLICA
 // ══════════════════════════════════════════════════════════
 void apply_filter(int32_t *left, int32_t *right, uint32_t mode) {
     switch (mode) {
-        case FILTER_LOWPASS:  filter_lowpass(left, right);  break;
-        case FILTER_HIGHPASS: filter_highpass(left, right); break;
-        case FILTER_BANDPASS: filter_bandpass(left, right); break;
-        default: break;  // BYPASS
+        // Mapeo de los 3 filtros a los switches (el lowpass quedo FUERA):
+        case FILTER_LOWPASS:  filter_highpass(left, right); break;  // SW=001 -> PASA-ALTAS
+        case FILTER_HIGHPASS: filter_bandpass(left, right); break;  // SW=010 -> PASA-BANDA
+        case FILTER_BANDPASS: filter_eq(left, right);       break;  // SW=011 -> EQ 3 BANDAS
+        default: break;  // BYPASS (SW=000)
     }
     // Saturacion de seguridad (highpass/bandpass = restas, pueden pasarse un poco).
     if      (*left  >  32767) *left  =  32767;
